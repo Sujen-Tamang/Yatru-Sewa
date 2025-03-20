@@ -1,9 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const { connectDB } = require("mongoose");
 
 dotenv.config(); // Load environment variables
 
 const app = express();
+connectDB
 
 app.use(express.json()); // Middleware for JSON parsing
 
