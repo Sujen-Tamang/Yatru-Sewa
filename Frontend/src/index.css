@@ -1,1 +1,2 @@
-@import "tailwindcss";
+@tailwind utilities;
+git checkout -b feature/adminPanel
