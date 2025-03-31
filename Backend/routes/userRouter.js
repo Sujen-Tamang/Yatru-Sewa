@@ -8,10 +8,11 @@ import {
   forgotPassword,
   resetPassword,
 } from "../controllers/userController.js";
-import { isAuthenticated } from "../middlewares/auth.js";
-import authRoutes from "./authRoutes.js";
+
 import busRoutes from "./busRoutes.js";
 import bookingRoutes from "./bookingRoutes.js";
+import adminRoutes from "./adminRoutes.js";
+import {isAuthenticated} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -23,7 +24,8 @@ router.get("/me", isAuthenticated, getUser);
 router.post("/password/forgot", forgotPassword);
 router.put("/password/reset/:token", resetPassword);
 router.get('/buses', busRoutes);  // Bus management routes
-router.post('/bookings', bookingRoutes);  // Booking management routes
+router.post('/bookings', bookingRoutes);
+router.use("/admin", adminRoutes);// Booking management routes
 
 
 export default router;
