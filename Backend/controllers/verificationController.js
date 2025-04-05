@@ -1,6 +1,8 @@
 import { sendEmail } from "../utils/sendEmail.js";
 import { sendToken } from "../utils/sendToken.js";
-import {generateVerificationCode} from "../models/userModel.js";
+import { User } from "../models/userModel.js";
+import { generateVerificationCode } from "../models/userModel.js";
+
 
 
 // Send verification code to the user's email
@@ -15,7 +17,8 @@ export const sendVerificationEmailCode = async (req, res) => {
         }
 
         // Generate a verification code
-        const verificationCode = generateVerificationCode();
+        const verificationCode = user.generateVerificationCode();
+
 
         // Save the verification code to the user (could be a temporary field in the user model)
         user.verificationCode = verificationCode;

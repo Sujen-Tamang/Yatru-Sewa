@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
+
 // User Schema Definition
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -69,7 +70,7 @@ userSchema.methods.generateToken = function () {
     throw new Error("JWT_SECRET_KEY is not defined in environment variables.");
   }
 
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
+  return jwt.sign({ id: this._id, email: this.email }, process.env.JWT_SECRET_KEY, {
     expiresIn: process.env.JWT_EXPIRE || "1h", // Default expiration time of 1 hour
   });
 };

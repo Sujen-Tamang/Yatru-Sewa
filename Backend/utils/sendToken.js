@@ -1,18 +1,19 @@
-// Send token function
 export const sendToken = (user, statusCode, message, res) => {
-    const token = user.generateToken();
-    res
-        .status(statusCode)
-        .cookie("token", token, {
-            expires: new Date(
-                Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
-            ),
-            httpOnly: true,
-        })
-        .json({
-            success: true,
-            user,
-            message,
-            token,
-        });
+    const token = user.generateToken(
+        { id: user._id, email: user.email }, // Include email in the payload
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE }
+    );
+
+    res.status(statusCode).json({
+        success: true,
+        message,
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+        },
+    });
 };
