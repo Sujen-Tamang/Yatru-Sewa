@@ -1,73 +1,78 @@
-"use client"
-
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useAuth } from "../../contexts/AuthContext"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const SignIn = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-
-  const { signIn } = useAuth()
-  const navigate = useNavigate()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
+    e.preventDefault();
+  
     if (!email || !password) {
-      return setError("Please fill in all fields")
+      return setError("Please fill in all fields");
     }
-
+  
     try {
-      setError("")
-      setLoading(true)
-      const result = await signIn(email, password)
-
-      if (result.success) {
-        navigate("/")
+      setError("");
+      setLoading(true);
+  
+      const response = await fetch("http://localhost:4000/api/v1/user/Login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        // Handle successful login
+        console.log(data);
+        navigate("/");
       } else {
-        setError(result.error || "Failed to sign in")
+        setError(data.error || "Failed to sign in");
       }
     } catch (err) {
-      setError("Failed to sign in")
+      setError("Failed to sign in");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
+  
   const handleGoogleSignIn = () => {
-    // In a real app, this would integrate with Google OAuth
-    alert("Google Sign In would be implemented here")
-  }
+    alert("Google Sign In would be implemented here");
+  };
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-center mb-2">Sign In</h1>
-      <p className="text-center text-gray-600 mb-6">Enter your email and password to Sign In to your account.</p>
+      <p className="text-center text-gray-600 mb-6">Enter your email and password to sign in to your account.</p>
 
       {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-          </label>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
             type="email"
             id="email"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Connect@yoursewa.com"
+            placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
           <input
             type="password"
             id="password"
@@ -77,9 +82,7 @@ const SignIn = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
           <div className="text-right">
-            <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
-              Forgot password?
-            </Link>
+            <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">Forgot password?</Link>
           </div>
         </div>
 
@@ -93,10 +96,7 @@ const SignIn = () => {
       </form>
 
       <div className="mt-4 text-center">
-        Don't have an account?{" "}
-        <Link to="/signup" className="text-blue-600 hover:underline">
-          Sign Up
-        </Link>
+        Don't have an account? <Link to="/signup" className="text-blue-600 hover:underline">Sign Up</Link>
       </div>
 
       <div className="flex items-center my-4">
@@ -112,7 +112,7 @@ const SignIn = () => {
         Sign In with Google
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default SignIn
+export default SignIn;

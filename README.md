@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Yatru Sewa - Bus Ticketing and Tracking Web App
 
 Yatru Sewa is a web application built using the MERN stack (MongoDB, Express.js, React.js, Node.js) that allows users to easily book bus tickets, receive e-tickets via Gmail, and track buses in real-time, similar to airplane tracking.
@@ -198,3 +199,17 @@ git pull origin develop
 | Fetch Updates | `git fetch origin` |
 | Pull Updates | `git pull origin branch-name` |
 
+=======
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+>>>>>>> a25472a4944b9058508913ab8f3fdea52839622e

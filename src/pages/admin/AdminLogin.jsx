@@ -1,9 +1,8 @@
-// "use client"
+"use client"
 
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { useAdminAuth } from "../../contexts/AdminAuthContext"
-
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("")
