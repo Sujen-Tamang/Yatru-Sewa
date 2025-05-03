@@ -18,7 +18,7 @@ export const register = catchAsyncError(async (req, res, next) => {
 
   // Validate phone number format
   function validatePhoneNumber(phone) {
-    const phoneRegex = /^\+977\d{10}$/; // Nepal format, you can adjust regex as needed
+    const phoneRegex = /^\+977\d{10}$/;
     return phoneRegex.test(phone);
   }
 
@@ -51,10 +51,12 @@ export const register = catchAsyncError(async (req, res, next) => {
   const userData = { name, email, phone, password };
   const user = await User.create(userData);
 
-  const verificationCode = await user.generateVerificationCode();
+  // const verificationCode = await user.generateVerificationCode();
   await user.save();
+  sendToken(user, 200, "Account registered.", res, email);
+  res.status(200).json({success:true, data: user});
 
-  sendVerificationCode(verificationMethod, verificationCode, name, email, phone, res);
+  // sendVerificationCode(verificationMethod, verificationCode, name, email, phone, res);
 });
 
 // Send Verification Code (Email/Phone)
@@ -66,17 +68,6 @@ async function sendVerificationCode(verificationMethod, verificationCode, name, 
       return res.status(200).json({
         success: true,
         message: `Verification email sent to ${name}.`,
-      });
-    } else if (verificationMethod === "phone") {
-      const verificationCodeWithSpace = verificationCode.toString().split("").join(" ");
-      await client.calls.create({
-        twiml: `<Response><Say>Your verification code is ${verificationCodeWithSpace}. Your verification code is ${verificationCodeWithSpace}.</Say></Response>`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: phone,
-      });
-      return res.status(200).json({
-        success: true,
-        message: "OTP sent to your phone.",
       });
     } else {
       return res.status(400).json({
@@ -186,7 +177,7 @@ export const login = catchAsyncError(async (req, res, next) => {
   }
 
   // Send JWT token if login is successful
-  sendToken(user, 200, "User logged in successfully.", res);
+  sendToken(user, 200, "User logged in successfully.", res, email);
 });
 
 

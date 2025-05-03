@@ -166,19 +166,19 @@ const ContactPage = () => {
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">Our Offices</h3>
                 <div className="space-y-8">
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">New York</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Kathmandu </h4>
                     <p className="text-gray-600">
-                      123 Business Avenue<br />
-                      New York, NY 10001<br />
-                      United States
+                      Samakhushi<br />
+                      Ward 29<br />
+                      Nepal
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Boston</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">Pokhara</h4>
                     <p className="text-gray-600">
-                      456 Tech Street<br />
-                      Boston, MA 02108<br />
-                      United States
+                      Lake Side<br />
+                      Ward 09<br />
+                      Nepal
                     </p>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h4 className="text-lg font-semibold text-gray-900">Email</h4>
-                      <a href="mailto:support@bustracker.com" className="text-blue-600 hover:text-blue-700">support@bustracker.com</a>
+                      <a href="mailto:yatrusewa2025@gmail.com" className="text-blue-600 hover:text-blue-700">yatrusewa2025@gmail.com</a>
                     </div>
                   </div>
 
@@ -208,7 +208,7 @@ const ContactPage = () => {
                     </div>
                     <div>
                       <h4 className="text-lg font-semibold text-gray-900">Phone</h4>
-                      <a href="tel:+1-800-123-4567" className="text-blue-600 hover:text-blue-700">+1 (800) 123-4567</a>
+                      <a href="tel:+1-800-123-4567" className="text-blue-600 hover:text-blue-700">+977 9813536868</a>
                     </div>
                   </div>
 
@@ -283,7 +283,7 @@ const ContactPage = () => {
             className="text-center mb-12"
           >
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Visit Our Office</h2>
-            <p className="text-xl text-gray-600">Find us at our convenient locations in New York and Boston.</p>
+            <p className="text-xl text-gray-600">Find us at our convenient locations in Kathmandu and Pokhara.</p>
           </motion.div>
           
           <motion.div
@@ -294,7 +294,8 @@ const ContactPage = () => {
             className="aspect-w-16 aspect-h-9 rounded-2xl overflow-hidden shadow-xl"
           >
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.15830869428!2d-74.11976397304603!3d40.69766374874431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1644262712021!5m2!1sen!2s"
+              // src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193595.15830869428!2d-74.11976397304603!3d40.69766374874431!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2s!4v1644262712021!5m2!1sen!2s"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.1032254097247!2d85.31232911489197!3d27.706194732792624!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1909d7a8a5cb%3A0x5a5142641f9b0e1f!2sKathmandu%2C%20Nepal!5e0!3m2!1sen!2snp!4v1714642452176!5m2!1sen!2snp"
               width="100%"
               height="100%"
               style={{ border: 0 }}

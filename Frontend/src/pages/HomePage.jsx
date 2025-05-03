@@ -34,19 +34,19 @@ const HomePage = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="hidden md:block"
             >
-              <img 
+              {/* <img 
                 src="/bus-hero.jpg" 
                 alt="Bus travel illustration" 
                 className="rounded-2xl shadow-2xl transform hover:scale-105 transition duration-500"
-              />
+              /> */}
             </motion.div>
           </div>
         </div>
         
-        {/* Wave divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto">
-            <path fill="#ffffff" fillOpacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+        {/* Wave divider - Adjusted to be at the level of the card */}
+        <div className="absolute bottom-0 left-0 right-0" style={{ bottom: "-140px" }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto" preserveAspectRatio="none">
+            <path fill="#ffffff" fillOpacity="1" d="M0,160L48,144C96,128,192,96,288,90.7C384,85,480,107,576,122.7C672,139,768,149,864,144C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
           </svg>
         </div>
       </section>
@@ -70,10 +70,10 @@ const HomePage = () => {
                   <label htmlFor="from" className="block text-sm font-medium text-gray-700 mb-2">From</label>
                   <select id="from" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     <option value="" disabled selected>Select departure</option>
-                    <option value="new-york">New York</option>
-                    <option value="boston">Boston</option>
-                    <option value="washington">Washington DC</option>
-                    <option value="philadelphia">Philadelphia</option>
+                    <option value="Kathmandu">Kathmandu </option>
+                    <option value="Pokhara">Pokhara</option>
+                    <option value="Chitwan">Chitwan </option>
+                    <option value="Butwal">Butwal </option>
                   </select>
                 </div>
                 
@@ -81,10 +81,10 @@ const HomePage = () => {
                   <label htmlFor="to" className="block text-sm font-medium text-gray-700 mb-2">To</label>
                   <select id="to" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
                     <option value="" disabled selected>Select destination</option>
-                    <option value="new-york">New York</option>
-                    <option value="boston">Boston</option>
-                    <option value="washington">Washington DC</option>
-                    <option value="philadelphia">Philadelphia</option>
+                    <option value="Kathmandu">Kathmandu </option>
+                    <option value="Pokhara">Pokhara</option>
+                    <option value="Chitwan">Chitwan </option>
+                    <option value="Butwal">Butwal </option>
                   </select>
                 </div>
                 
@@ -187,21 +187,21 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                title: "New York to Boston",
+                title: "Kathmandu to Pokhara",
                 duration: "4h 30m",
-                price: "$25",
+                price: "RS. 2500",
                 image: "/route1.jpg"
               },
               {
-                title: "Boston to Washington DC",
+                title: "Pokhara to  Chitwan",
                 duration: "8h 15m",
-                price: "$35",
+                price: "Rs. 2000",
                 image: "/route2.jpg"
               },
               {
-                title: "Philadelphia to New York",
+                title: "Butwal to Kathmandu",
                 duration: "2h 45m",
-                price: "$20",
+                price: "Rs. 3000",
                 image: "/route3.jpg"
               }
             ].map((route, index) => (
@@ -214,13 +214,13 @@ const HomePage = () => {
                 className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
               >
                 <div className="h-48 bg-gray-200 relative overflow-hidden">
-                  <img src={route.image} alt={route.title} className="w-full h-full object-cover transform hover:scale-110 transition duration-500" />
+                  <img src={route.image || "/placeholder.svg"} alt={route.title} className="w-full h-full object-cover transform hover:scale-110 transition duration-500" />
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{route.title}</h3>
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-gray-600">{route.duration}</span>
-                    <span className="text-blue-600 font-semibold">From {route.price}</span>
+                    <span className="text-blue-600 font-semibold"> {route.price}</span>
                   </div>
                   <Link to="#" className="block text-center bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105">
                     View Schedule

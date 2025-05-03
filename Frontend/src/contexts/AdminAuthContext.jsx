@@ -6,7 +6,6 @@ const AdminAuthContext = createContext(null)
 
 export const useAdminAuth = () => useContext(AdminAuthContext)
 
-
 export const AdminAuthProvider = ({ children }) => {
   const [currentAdmin, setCurrentAdmin] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -20,34 +19,27 @@ export const AdminAuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  // Admin sign in function (calls real API)
+  // Admin sign in function
   const adminSignIn = async (email, password) => {
     try {
-      const response = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
+      // In a real app, this would be an API call to your backend with proper authentication
+      // For demo purposes, we'll simulate a successful login with admin credentials
 
-      const result = await response.json()
-
-      if (response.ok && result.id && result.email) {
+      // Basic validation (would be handled by backend in production)
+      if (email === "admin@bustracker.com" && password === "admin123") {
         const adminData = {
-          id: result.id,
-          name: result.name,
-          email: result.email,
-          phone: result.phone,
-          role: result.role,
-          permissions: [], // Optional: fill this in if your API returns permissions
+          id: "admin-1",
+          email,
+          name: "Admin User",
+          role: "administrator",
+          permissions: ["manage_routes", "manage_schedules", "view_users", "view_transactions"],
         }
 
         setCurrentAdmin(adminData)
         localStorage.setItem("admin", JSON.stringify(adminData))
         return { success: true }
       } else {
-        return { success: false, error: result.error || "Login failed" }
+        return { success: false, error: "Invalid email or password" }
       }
     } catch (error) {
       return { success: false, error: error.message || "Failed to sign in" }

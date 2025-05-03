@@ -1,13 +1,18 @@
 // routes/authRoutes.js
+
 import express from 'express';
-import { register, login } from '../controllers/authController.js';
+import { login } from '../controllers/authController.js';
+import { sendVerificationEmailCode, verifyEmailCode } from '../controllers/verificationController.js';
 
 const router = express.Router();
 
-// Register a new user
-router.post('/register', register);
-
-// Login a user & get JWT token
+// Login Route
 router.post('/login', login);
+
+// Send Verification Code Route
+router.post('/send-verification-code', sendVerificationEmailCode);
+
+// Verify Email Code Route
+router.post('/verify-email-code', verifyEmailCode);
 
 export default router;
