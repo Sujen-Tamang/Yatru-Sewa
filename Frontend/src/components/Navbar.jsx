@@ -33,6 +33,9 @@ const Navbar = () => {
               <Link to="/" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>
                 Home
               </Link>
+              <Link to="/bookings" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/bookings' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>
+                Bookings
+              </Link>
               <Link to="/about" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/about' ? 'border-blue-500' : 'border-transparent'} ${isActive('/about')}`}>
                 About Us
               </Link>

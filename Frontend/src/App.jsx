@@ -18,6 +18,7 @@ import SuccessPage from "./pages/auth/SuccessPage"
 import HomePage from "./pages/HomePage"
 import AboutPage from "./pages/AboutPage"
 import ContactPage from "./pages/ContactPage"
+import BusBookingPage from "./pages/BusBookingPage"
 
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin"
@@ -77,6 +78,8 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/BusBookingPage" element={<BusBookingPage />} />
+              
             </Route>
 
             {/* Default route redirects to home */}
