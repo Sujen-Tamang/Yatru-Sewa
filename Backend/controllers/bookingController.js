@@ -1,19 +1,27 @@
-// controllers/bookingController.js
+
 import Booking from '../models/Booking.js';
 import Bus from '../models/Bus.js';
 
 // Create a new booking
 export const createBooking = async (req, res) => {
     try {
-        const { busId, seatNumber } = req.body;
+        const { busId, seatNumber, route, date, departureTime, amount } = req.body;
         const bus = await Bus.findById(busId);
         if (!bus) {
             return res.status(404).json({ message: 'Bus not found' });
         }
 
         const newBooking = new Booking({
+            id: `BK${Date.now()}`,
             userId: req.user.id,
+            userName: req.user.name,
             busId,
+            route,
+            date,
+            departureTime,
+            status: 'Confirmed',
+            paymentStatus: 'Paid',
+            amount,
             seatNumber,
         });
         await newBooking.save();
@@ -28,7 +36,18 @@ export const createBooking = async (req, res) => {
 export const getBookingsByUser = async (req, res) => {
     try {
         const bookings = await Booking.find({ userId: req.user.id }).populate('busId');
-        res.json(bookings);
+        res.json(bookings.map(booking => ({
+            id: booking.id,
+            userId: booking.userId,
+            userName: booking.userName,
+            route: booking.route,
+            date: booking.date,
+            departureTime: booking.departureTime,
+            status: booking.status,
+            paymentStatus: booking.paymentStatus,
+            amount: booking.amount,
+            seatNumber: booking.seatNumber
+        })));
     } catch (error) {
         res.status(500).json({ message: 'Error fetching bookings', error });
     }
@@ -46,8 +65,9 @@ export const cancelBooking = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized to cancel this booking' });
         }
 
-        await booking.remove();
-        res.json({ message: 'Booking canceled successfully' });
+        booking.status = 'Canceled';
+        await booking.save();
+        res.json({ message: 'Booking canceled successfully', booking });
     } catch (error) {
         res.status(500).json({ message: 'Error canceling booking', error });
     }

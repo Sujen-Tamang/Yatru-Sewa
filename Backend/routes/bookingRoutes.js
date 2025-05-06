@@ -1,18 +1,18 @@
 // routes/bookingRoutes.js
 import express from 'express';
 import { createBooking, getBookingsByUser, cancelBooking } from '../controllers/bookingController.js';
-import {protect} from "../middlewares/authMiddleware.js";
+import {isAuthenticated} from "../middlewares/authMiddleware.js";
 
 
 const router = express.Router();
 
 // Get all bookings for a specific user
-router.get('/', protect, getBookingsByUser);
+router.get('/', isAuthenticated, getBookingsByUser);
 
 // Create a booking (Accessible by logged-in users)
-router.post('/', protect, createBooking);
+router.post('/', isAuthenticated, createBooking);
 
 // Cancel a booking (Accessible by users)
-router.delete('/:id', protect, cancelBooking);
+router.delete('/:id', isAuthenticated, cancelBooking);
 
 export default router;

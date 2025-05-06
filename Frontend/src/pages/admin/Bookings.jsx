@@ -2,103 +2,193 @@
 
 import { useState, useEffect } from "react"
 
-// Sample data for bookings
+// Sample data for bookings based on the new structure
 const initialBookings = [
   {
-    id: "BK12345",
-    userId: 1,
-    userName: "John Doe",
-    route: "New York to Boston",
-    date: "2023-07-15",
-    departureTime: "08:00 AM",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: 35.0,
-    seatNumber: "12A",
+    bookingId: "BOOK123456",
+    user: {
+      userId: "USR001",
+      fullName: "Pralab Raj Mahat",
+      email: "pralab123@gmail.com",
+      phone: "+9779801234567",
+    },
+    bus: {
+      busId: "BUS789",
+      yatayatName: "Sajha Yatayat",
+      busNumber: "BA 2 KHA 2345",
+      departure: "Kathmandu",
+      destination: "Pokhara",
+      departureDate: "2025-05-05",
+      departureTime: "07:30 AM",
+    },
+    seat: {
+      seatNumber: "A5",
+      seatType: "Window",
+    },
+    payment: {
+      amountPaid: 1200,
+      currency: "NPR",
+      paymentMethod: "Khalti",
+      paymentStatus: "Completed",
+      transactionId: "TXN998877",
+    },
+    bookingStatus: "Confirmed",
+    bookedAt: "2025-05-03T14:22:00Z",
   },
   {
-    id: "BK12346",
-    userId: 2,
-    userName: "Jane Smith",
-    route: "Washington to Philadelphia",
-    date: "2023-07-15",
-    departureTime: "09:30 AM",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: 28.5,
-    seatNumber: "5B",
+    bookingId: "BOOK123457",
+    user: {
+      userId: "USR002",
+      fullName: "Sunita Gurung",
+      email: "sunita.g@gmail.com",
+      phone: "+9779812345678",
+    },
+    bus: {
+      busId: "BUS456",
+      yatayatName: "Nepal Yatayat",
+      busNumber: "BA 3 KHA 5678",
+      departure: "Pokhara",
+      destination: "Lumbini",
+      departureDate: "2025-05-06",
+      departureTime: "08:30 AM",
+    },
+    seat: {
+      seatNumber: "B3",
+      seatType: "Aisle",
+    },
+    payment: {
+      amountPaid: 1100,
+      currency: "NPR",
+      paymentMethod: "Khalti",
+      paymentStatus: "Pending",
+      transactionId: "TXN998878",
+    },
+    bookingStatus: "Pending",
+    bookedAt: "2025-05-03T15:30:00Z",
   },
   {
-    id: "BK12347",
-    userId: 3,
-    userName: "Mike Johnson",
-    route: "Boston to Washington",
-    date: "2023-07-16",
-    departureTime: "10:15 AM",
-    status: "Pending",
-    paymentStatus: "Awaiting",
-    amount: 42.0,
-    seatNumber: "8C",
+    bookingId: "BOOK123458",
+    user: {
+      userId: "USR003",
+      fullName: "Rajesh Yadav",
+      email: "rajesh.y@gmail.com",
+      phone: "+9779823456789",
+    },
+    bus: {
+      busId: "BUS123",
+      yatayatName: "Sajha Yatayat",
+      busNumber: "BA 1 KHA 1234",
+      departure: "Kathmandu",
+      destination: "Chitwan",
+      departureDate: "2025-05-07",
+      departureTime: "06:45 AM",
+    },
+    seat: {
+      seatNumber: "C7",
+      seatType: "Window",
+    },
+    payment: {
+      amountPaid: 1200,
+      currency: "NPR",
+      paymentMethod: "Esewa",
+      paymentStatus: "Completed",
+      transactionId: "TXN998879",
+    },
+    bookingStatus: "Confirmed",
+    bookedAt: "2025-05-03T16:45:00Z",
   },
   {
-    id: "BK12348",
-    userId: 4,
-    userName: "Sarah Williams",
-    route: "Philadelphia to New York",
-    date: "2023-07-16",
-    departureTime: "11:00 AM",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: 25.0,
-    seatNumber: "15D",
+    bookingId: "BOOK123459",
+    user: {
+      userId: "USR004",
+      fullName: "Sushma Rai",
+      email: "sushma.r@gmail.com",
+      phone: "+9779834567890",
+    },
+    bus: {
+      busId: "BUS234",
+      yatayatName: "Makalu Yatayat",
+      busNumber: "KO 1 KHA 5678",
+      departure: "Biratnagar",
+      destination: "Dharan",
+      departureDate: "2025-05-08",
+      departureTime: "10:00 AM",
+    },
+    seat: {
+      seatNumber: "D2",
+      seatType: "Aisle",
+    },
+    payment: {
+      amountPaid: 400,
+      currency: "NPR",
+      paymentMethod: "Khalti",
+      paymentStatus: "Completed",
+      transactionId: "TXN998880",
+    },
+    bookingStatus: "Confirmed",
+    bookedAt: "2025-05-03T17:15:00Z",
   },
   {
-    id: "BK12349",
-    userId: 5,
-    userName: "James Brown",
-    route: "New York to Washington",
-    date: "2023-07-17",
-    departureTime: "07:30 AM",
-    status: "Pending",
-    paymentStatus: "Awaiting",
-    amount: 38.5,
-    seatNumber: "3A",
+    bookingId: "BOOK123460",
+    user: {
+      userId: "USR005",
+      fullName: "Bikram Thapa",
+      email: "bikram.t@gmail.com",
+      phone: "+9779845678901",
+    },
+    bus: {
+      busId: "BUS345",
+      yatayatName: "Lumbini Yatayat",
+      busNumber: "LU 1 KHA 9012",
+      departure: "Pokhara",
+      destination: "Butwal",
+      departureDate: "2025-05-09",
+      departureTime: "02:00 PM",
+    },
+    seat: {
+      seatNumber: "E9",
+      seatType: "Window",
+    },
+    payment: {
+      amountPaid: 1300,
+      currency: "NPR",
+      paymentMethod: "Khalti",
+      paymentStatus: "Refunded",
+      transactionId: "TXN998881",
+    },
+    bookingStatus: "Cancelled",
+    bookedAt: "2025-05-03T18:30:00Z",
   },
   {
-    id: "BK12350",
-    userId: 1,
-    userName: "John Doe",
-    route: "Boston to New York",
-    date: "2023-07-18",
-    departureTime: "09:00 AM",
-    status: "Cancelled",
-    paymentStatus: "Refunded",
-    amount: 25.0,
-    seatNumber: "7B",
-  },
-  {
-    id: "BK12351",
-    userId: 6,
-    userName: "Emily Davis",
-    route: "Washington to Boston",
-    date: "2023-07-20",
-    departureTime: "06:45 AM",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: 48.75,
-    seatNumber: "10C",
-  },
-  {
-    id: "BK12352",
-    userId: 7,
-    userName: "Robert Wilson",
-    route: "Philadelphia to Washington",
-    date: "2023-07-21",
-    departureTime: "02:30 PM",
-    status: "Confirmed",
-    paymentStatus: "Paid",
-    amount: 30.25,
-    seatNumber: "9D",
+    bookingId: "BOOK123461",
+    user: {
+      userId: "USR006",
+      fullName: "Anjali Shrestha",
+      email: "anjali.s@gmail.com",
+      phone: "+9779856789012",
+    },
+    bus: {
+      busId: "BUS567",
+      yatayatName: "Sajha Yatayat",
+      busNumber: "BA 4 KHA 3456",
+      departure: "Kathmandu",
+      destination: "Biratnagar",
+      departureDate: "2025-05-10",
+      departureTime: "09:00 PM",
+    },
+    seat: {
+      seatNumber: "F4",
+      seatType: "Window",
+    },
+    payment: {
+      amountPaid: 2500,
+      currency: "NPR",
+      paymentMethod: "Khalti",
+      paymentStatus: "Completed",
+      transactionId: "TXN998882",
+    },
+    bookingStatus: "Confirmed",
+    bookedAt: "2025-05-03T19:45:00Z",
   },
 ]
 
@@ -108,7 +198,7 @@ const Bookings = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterDate, setFilterDate] = useState("")
-  const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" })
+  const [sortConfig, setSortConfig] = useState({ key: "bookedAt", direction: "desc" })
   const [viewBookingDetails, setViewBookingDetails] = useState(null)
 
   useEffect(() => {
@@ -132,24 +222,45 @@ const Bookings = () => {
   }
 
   const sortedBookings = [...bookings].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key]) {
+    // Handle nested properties
+    const getValue = (obj, path) => {
+      const keys = path.split(".")
+      return keys.reduce((o, k) => (o || {})[k], obj)
+    }
+
+    const aValue = getValue(a, sortConfig.key)
+    const bValue = getValue(b, sortConfig.key)
+
+    if (aValue < bValue) {
       return sortConfig.direction === "asc" ? -1 : 1
     }
-    if (a[sortConfig.key] > b[sortConfig.key]) {
+    if (aValue > bValue) {
       return sortConfig.direction === "asc" ? 1 : -1
     }
     return 0
   })
 
+  // Format date for display
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "short", day: "numeric" }
+    return new Date(dateString).toLocaleDateString(undefined, options)
+  }
+
+  // Format time for display
+  const formatTime = (dateString) => {
+    const options = { hour: "2-digit", minute: "2-digit" }
+    return new Date(dateString).toLocaleTimeString(undefined, options)
+  }
+
   // Filter bookings based on search term, status, and date
   const filteredBookings = sortedBookings.filter((booking) => {
     const matchesSearch =
-      booking.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.route.toLowerCase().includes(searchTerm.toLowerCase())
+      booking.bookingId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${booking.bus.departure} to ${booking.bus.destination}`.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = filterStatus === "all" ? true : booking.status === filterStatus
-    const matchesDate = filterDate ? booking.date === filterDate : true
+    const matchesStatus = filterStatus === "all" ? true : booking.bookingStatus === filterStatus
+    const matchesDate = filterDate ? booking.bus.departureDate === filterDate : true
 
     return matchesSearch && matchesStatus && matchesDate
   })
@@ -159,10 +270,12 @@ const Bookings = () => {
   }
 
   const handleUpdateStatus = (id, newStatus) => {
-    setBookings(bookings.map((booking) => (booking.id === id ? { ...booking, status: newStatus } : booking)))
+    setBookings(
+      bookings.map((booking) => (booking.bookingId === id ? { ...booking, bookingStatus: newStatus } : booking)),
+    )
 
-    if (viewBookingDetails && viewBookingDetails.id === id) {
-      setViewBookingDetails({ ...viewBookingDetails, status: newStatus })
+    if (viewBookingDetails && viewBookingDetails.bookingId === id) {
+      setViewBookingDetails({ ...viewBookingDetails, bookingStatus: newStatus })
     }
   }
 
@@ -256,11 +369,11 @@ const Bookings = () => {
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("id")}
+                  onClick={() => handleSort("bookingId")}
                 >
                   <div className="flex items-center">
                     Booking ID
-                    {sortConfig.key === "id" && (
+                    {sortConfig.key === "bookingId" && (
                       <svg
                         className="ml-1 h-4 w-4"
                         fill="currentColor"
@@ -299,11 +412,11 @@ const Bookings = () => {
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("date")}
+                  onClick={() => handleSort("bus.departureDate")}
                 >
                   <div className="flex items-center">
                     Date/Time
-                    {sortConfig.key === "date" && (
+                    {sortConfig.key === "bus.departureDate" && (
                       <svg
                         className="ml-1 h-4 w-4"
                         fill="currentColor"
@@ -336,11 +449,11 @@ const Bookings = () => {
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("amount")}
+                  onClick={() => handleSort("payment.amountPaid")}
                 >
                   <div className="flex items-center">
                     Amount
-                    {sortConfig.key === "amount" && (
+                    {sortConfig.key === "payment.amountPaid" && (
                       <svg
                         className="ml-1 h-4 w-4"
                         fill="currentColor"
@@ -374,36 +487,41 @@ const Bookings = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredBookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50">
+                <tr key={booking.bookingId} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-blue-600">{booking.id}</div>
+                    <div className="text-sm font-medium text-blue-600">{booking.bookingId}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{booking.userName}</div>
+                    <div className="text-sm font-medium text-gray-900">{booking.user.fullName}</div>
+                    <div className="text-xs text-gray-500">{booking.user.phone}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{booking.route}</div>
-                    <div className="text-xs text-gray-500">Seat: {booking.seatNumber}</div>
+                    <div className="text-sm text-gray-900">
+                      {booking.bus.departure} to {booking.bus.destination}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {booking.bus.yatayatName} • Seat: {booking.seat.seatNumber} ({booking.seat.seatType})
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{booking.date}</div>
-                    <div className="text-xs text-gray-500">{booking.departureTime}</div>
+                    <div className="text-sm text-gray-900">{booking.bus.departureDate}</div>
+                    <div className="text-xs text-gray-500">{booking.bus.departureTime}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        booking.status === "Confirmed"
+                        booking.bookingStatus === "Confirmed"
                           ? "bg-green-100 text-green-800"
-                          : booking.status === "Pending"
+                          : booking.bookingStatus === "Pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {booking.status}
+                      {booking.bookingStatus}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${booking.amount.toFixed(2)}
+                    {booking.payment.amountPaid} {booking.payment.currency}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -446,73 +564,140 @@ const Bookings = () => {
                   <h3 className="text-lg leading-6 font-medium text-gray-900">Booking Details</h3>
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      viewBookingDetails.status === "Confirmed"
+                      viewBookingDetails.bookingStatus === "Confirmed"
                         ? "bg-green-100 text-green-800"
-                        : viewBookingDetails.status === "Pending"
+                        : viewBookingDetails.bookingStatus === "Pending"
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {viewBookingDetails.status}
+                    {viewBookingDetails.bookingStatus}
                   </span>
                 </div>
 
                 <div className="mt-4">
+                  {/* Booking Information */}
                   <div className="bg-gray-50 rounded-lg p-4 mb-4">
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Booking Information</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-gray-500">Booking ID:</span>
-                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.id}</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.bookingId}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Customer:</span>
-                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.userName}</span>
+                        <span className="text-gray-500">Booked At:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {formatDate(viewBookingDetails.bookedAt)} {formatTime(viewBookingDetails.bookedAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Customer Information */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Customer Information</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-gray-500">Name:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.user.fullName}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">User ID:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.user.userId}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Email:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.user.email}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Phone:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.user.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bus Information */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Bus Information</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-gray-500">Bus ID:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.bus.busId}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Yatayat:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.bus.yatayatName}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Bus Number:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.bus.busNumber}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Route:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {viewBookingDetails.bus.departure} to {viewBookingDetails.bus.destination}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-500">Date:</span>
-                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.date}</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.bus.departureDate}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Departure:</span>
-                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.departureTime}</span>
+                        <span className="text-gray-500">Time:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.bus.departureTime}</span>
                       </div>
                     </div>
                   </div>
 
+                  {/* Seat Information */}
                   <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Route Details</h4>
-                    <div className="grid grid-cols-1 gap-2 text-sm">
-                      <div>
-                        <span className="text-gray-500">Route:</span>
-                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.route}</span>
-                      </div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Seat Information</h4>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-gray-500">Seat Number:</span>
-                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.seatNumber}</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.seat.seatNumber}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Seat Type:</span>
+                        <span className="ml-2 font-medium text-gray-900">{viewBookingDetails.seat.seatType}</span>
                       </div>
                     </div>
                   </div>
 
+                  {/* Payment Information */}
                   <div className="bg-gray-50 rounded-lg p-4 mb-4">
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Payment Details</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-gray-500">Amount:</span>
-                        <span className="ml-2 font-medium text-gray-900">${viewBookingDetails.amount.toFixed(2)}</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {viewBookingDetails.payment.amountPaid} {viewBookingDetails.payment.currency}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Payment Method:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {viewBookingDetails.payment.paymentMethod}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Transaction ID:</span>
+                        <span className="ml-2 font-medium text-gray-900">
+                          {viewBookingDetails.payment.transactionId}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-500">Payment Status:</span>
                         <span
                           className={`ml-2 font-medium ${
-                            viewBookingDetails.paymentStatus === "Paid"
+                            viewBookingDetails.payment.paymentStatus === "Completed"
                               ? "text-green-600"
-                              : viewBookingDetails.paymentStatus === "Awaiting"
+                              : viewBookingDetails.payment.paymentStatus === "Pending"
                                 ? "text-yellow-600"
                                 : "text-red-600"
                           }`}
                         >
-                          {viewBookingDetails.paymentStatus}
+                          {viewBookingDetails.payment.paymentStatus}
                         </span>
                       </div>
                     </div>
@@ -521,20 +706,20 @@ const Bookings = () => {
               </div>
 
               <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-3 sm:gap-3 sm:grid-flow-row-dense">
-                {viewBookingDetails.status !== "Confirmed" && (
+                {viewBookingDetails.bookingStatus !== "Confirmed" && (
                   <button
                     type="button"
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:col-start-3 sm:text-sm"
-                    onClick={() => handleUpdateStatus(viewBookingDetails.id, "Confirmed")}
+                    onClick={() => handleUpdateStatus(viewBookingDetails.bookingId, "Confirmed")}
                   >
                     Confirm
                   </button>
                 )}
-                {viewBookingDetails.status !== "Cancelled" && (
+                {viewBookingDetails.bookingStatus !== "Cancelled" && (
                   <button
                     type="button"
                     className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:col-start-2 sm:text-sm"
-                    onClick={() => handleUpdateStatus(viewBookingDetails.id, "Cancelled")}
+                    onClick={() => handleUpdateStatus(viewBookingDetails.bookingId, "Cancelled")}
                   >
                     Cancel
                   </button>

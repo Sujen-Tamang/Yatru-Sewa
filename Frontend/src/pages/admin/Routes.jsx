@@ -4,20 +4,12 @@ import { useState, useEffect } from "react"
 
 // Sample data for routes
 const initialRoutes = [
-  { id: 1, from: "New York", to: "Boston", distance: "215 miles", duration: "4h 30m", price: 25, active: true },
-  { id: 2, from: "Boston", to: "Washington DC", distance: "440 miles", duration: "8h 15m", price: 35, active: true },
-  { id: 3, from: "Philadelphia", to: "New York", distance: "95 miles", duration: "2h 45m", price: 20, active: true },
-  {
-    id: 4,
-    from: "Washington DC",
-    to: "Philadelphia",
-    distance: "140 miles",
-    duration: "3h 00m",
-    price: 22,
-    active: true,
-  },
-  { id: 5, from: "Boston", to: "New York", distance: "215 miles", duration: "4h 30m", price: 25, active: true },
-  { id: 6, from: "New York", to: "Washington DC", distance: "230 miles", duration: "4h 45m", price: 30, active: false },
+  { id: 1, from: "Kathmandu", to: "Pokhara", distance: "200 km", duration: "6h 30m", price: 1500, active: true },
+  { id: 2, from: "Kathmandu", to: "Chitwan", distance: "150 km", duration: "5h 00m", price: 1200, active: true },
+  { id: 3, from: "Pokhara", to: "Lumbini", distance: "140 km", duration: "4h 45m", price: 1100, active: true },
+  { id: 4, from: "Kathmandu", to: "Biratnagar", distance: "400 km", duration: "12h 00m", price: 2500, active: true },
+  { id: 5, from: "Pokhara", to: "Butwal", distance: "180 km", duration: "6h 15m", price: 1300, active: false },
+  { id: 6, from: "Dharan", to: "Biratnagar", distance: "40 km", duration: "1h 30m", price: 400, active: true },
 ]
 
 const Routes = () => {

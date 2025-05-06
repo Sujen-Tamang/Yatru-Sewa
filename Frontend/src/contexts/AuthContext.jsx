@@ -1,6 +1,8 @@
 "use client"
+import axios from "axios"
 
 import { createContext, useState, useContext, useEffect } from "react"
+import { login } from "../../servcies/auth"
 
 const AuthContext = createContext(null)
 
@@ -10,74 +12,46 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Check if user is logged in on initial load
   useEffect(() => {
     const user = localStorage.getItem("user")
-    if (user) {
+    const token = localStorage.getItem("token")
+    
+    if (user && token) {  
       setCurrentUser(JSON.parse(user))
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
     }
     setLoading(false)
   }, [])
 
-  // Sign in function
   const signIn = async (email, password) => {
     try {
-      // In a real app, this would be an API call to your backend
-      // For demo purposes, we'll simulate a successful login
-      const userData = { id: "123", email, name: "Demo User" }
-      setCurrentUser(userData)
-      localStorage.setItem("user", JSON.stringify(userData))
-      return { success: true }
+      const result = await login({ email, password })
+
+      if (result.success) {
+        setCurrentUser(result.user)
+        return { success: true }
+      } else {
+        return { success: false, error: result.message || "Login failed" }
+      }
     } catch (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: "An error occurred during login" }
     }
   }
 
-  // Sign up function
-  const signUp = async (firstName, lastName, email, password) => {
-    try {
-      // In a real app, this would be an API call to your backend
-      // For demo purposes, we'll simulate a successful registration
-      return { success: true, requireVerification: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
-  }
-
-  // Sign out function
   const signOut = () => {
+    authLogout()
     setCurrentUser(null)
-    localStorage.removeItem("user")
-  }
-
-  // Reset password function
-  const resetPassword = async (email) => {
-    try {
-      // In a real app, this would be an API call to your backend
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
-  }
-
-  // Verify code function
-  const verifyCode = async (code) => {
-    try {
-      // In a real app, this would be an API call to your backend
-      return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
   }
 
   const value = {
     currentUser,
+    isAuthenticated: !!currentUser,
     signIn,
-    signUp,
     signOut,
-    resetPassword,
-    verifyCode,
+    loading
   }
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>
+  return (<AuthContext.Provider value={value}>
+    {!loading && children}
+    </AuthContext.Provider>)
 }

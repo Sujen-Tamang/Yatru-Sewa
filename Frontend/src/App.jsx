@@ -20,6 +20,10 @@ import AboutPage from "./pages/AboutPage"
 import ContactPage from "./pages/ContactPage"
 import BusBookingPage from "./pages/BusBookingPage"
 
+// Customer Pages
+import CustomerDashboard from "./pages/customer/Dashboard"
+import CustomerBookings from "./pages/customer/Bookings"
+
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin"
 import AdminDashboard from "./pages/admin/Dashboard"
@@ -29,12 +33,14 @@ import AdminUsers from "./pages/admin/Users"
 import AdminBookings from "./pages/admin/Bookings"
 import AdminPayments from "./pages/admin/Payments"
 import AdminSettings from "./pages/admin/Settings"
+import AdminDrivers from "./pages/admin/Drivers"
 
 // Layout Components
 import AuthLayout from "./layouts/AuthLayout"
 import MainLayout from "./layouts/MainLayout"
 import AdminLayout from "./layouts/AdminLayout"
 import AdminProtectedRoute from "./components/admin/AdminProtectedRoute"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 function App() {
   useEffect(() => {
@@ -59,9 +65,15 @@ function App() {
               <Route path="/success" element={<SuccessPage />} />
             </Route>
 
+            {/* Customer Protected Routes */}
+            {/* <Route element={<ProtectedRoute />}> */}
+              <Route path="/customer" element={<CustomerDashboard />} />
+              <Route path="/customer/bookings" element={<CustomerBookings />} />
+            {/* </Route> */}
+
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            {/*<Route element={<AdminProtectedRoute />}>*/}
+            {/* <Route element={<AdminProtectedRoute />}> */}
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/routes" element={<AdminRoutes />} />
@@ -70,8 +82,9 @@ function App() {
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/payments" element={<AdminPayments />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
-              </Route>
-            {/*</Route>*/}
+                <Route path="/admin/drivers" element={<AdminDrivers />} />
+              {/* </Route> */}
+            </Route>
 
             {/* Main Routes */}
             <Route element={<MainLayout />}>
