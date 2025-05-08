@@ -1,39 +1,39 @@
 import jwt from 'jsonwebtoken';
+import { User } from '../models/userModel.js'; // or import User if using default export
+import { AppError } from './errorMiddleware.js';
 
-// Protect routes using JWT
 export const isAuthenticated = async (req, res, next) => {
     try {
-        // Check if the Authorization header contains a token
-        const token = req.header('Authorization')?.split(' ')[1];
+        // 1. Get token from header
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+
         if (!token) {
-            return res.status(401).json({ message: 'Access Denied, No Token Provided' });
+            return next(new AppError('Not authorized to access this route', 401));
         }
 
-        // Verify the token
+        // 2. Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Find the user using the decoded id from the token
-        req.user = await User.findById(decoded.id);
+        // 3. Find user and attach to request
+        req.user = await User.findById(decoded.id).select('-password');
+
         if (!req.user) {
-            return res.status(401).json({ message: 'User not found' });
+            return next(new AppError('User not found', 404));
         }
 
         next();
     } catch (err) {
-        res.status(400).json({ message: 'Invalid or Expired Token' });
+        return next(new AppError('Not authorized to access this route', 401));
     }
 };
 
-// Function to authorize user roles
 export const authorizeRoles = (...roles) => {
     return (req, res, next) => {
-        if (!req.user || !roles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Access Denied' });
+        if (!roles.includes(req.user.role)) {
+            return next(
+                new AppError(`Role (${req.user.role}) is not allowed to access this resource`, 403)
+            );
         }
         next();
     };
 };
-
-// Admin-specific role check
-export const isAdmin = authorizeRoles("admin");
-

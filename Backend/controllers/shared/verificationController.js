@@ -1,7 +1,7 @@
-import { sendEmail } from "../utils/sendEmail.js";
-import { sendToken } from "../utils/sendToken.js";
-import { User } from "../models/userModel.js";
-import { generateVerificationCode } from "../models/userModel.js";
+import { sendEmail } from "../../utils/sendEmail.js";
+import { sendToken } from "../../utils/sendToken.js";
+import { User } from "../../models/userModel.js";
+import { generateVerificationCode } from "../../models/userModel.js";
 
 
 

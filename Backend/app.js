@@ -1,15 +1,20 @@
 import express from "express";
-import { config } from "dotenv";
+import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import { connection } from "./database/dbConnection.js";
-import { errorMiddleware } from "./middlewares/error.js";
-import userRoutes from "./routes/userRouter.js";
-import { removeUnverifiedAccounts } from "./automation/removeUnverifiedAccounts.js";
-import bookingRoutes from "./routes/bookingRoutes.js"
+import connectDB from "./config/db.js";
+import { errorMiddleware } from "./middlewares/errorMiddleware.js";
+import routes from './routes/index.js';
+
 
 export const app = express();
-config({ path: "./config.env" });
+
+dotenv.config();
+
+connectDB().catch(err => {
+    console.error('Database connection failed:', err);
+    process.exit(1);
+});
 
 app.use(
   cors({
@@ -23,10 +28,9 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/v1/user", userRoutes);
-app.use("/bookings", bookingRoutes)
 
-removeUnverifiedAccounts();
-connection();
+app.use('/api/v1', routes)
+
 
 app.use(errorMiddleware);
+
