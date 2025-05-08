@@ -16,10 +16,10 @@ const bookingSchema = new mongoose.Schema({
         ref: 'Bus',
         required: true
     },
-    seats: [{
-        type: String,
+    seats: {
+        type: [String],
         required: true
-    }],
+    },
     travelDate: {
         type: Date,
         required: true
@@ -30,17 +30,19 @@ const bookingSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Confirmed', 'Cancelled', 'Completed'],
-        default: 'Confirmed'
+        enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
+        default: 'Pending'
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Payment'
+    },
+    expiresAt: {
+        type: Date
     },
     cancelledAt: {
         type: Date
     }
-});
+}, { timestamps: true });
 
-
-export const Booking = mongoose.model('Booking', bookingSchema);
+export default mongoose.model('Booking', bookingSchema);

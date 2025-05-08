@@ -1,5 +1,5 @@
 import { catchAsyncError } from '../../middlewares/catchAsyncError.js';
-import {Booking}  from '../../models/Booking.js';
+import Booking  from '../../models/Booking.js';
 import {AppError} from '../../middlewares/errorMiddleware.js';
 
 // Get all bookings (admin only)

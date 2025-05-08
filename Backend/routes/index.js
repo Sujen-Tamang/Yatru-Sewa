@@ -7,6 +7,7 @@ import userBookingRoutes from './user/bookingRoutes.js';
 import userBusRoutes from './user/busRoutes.js';
 import { isAuthenticated } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
+import paymentRoutes from "./user/paymentRoutes.js";
 
 const router = express.Router();
 
@@ -31,6 +32,8 @@ router.use('/admin/bookings', isAuthenticated, isAdmin, adminBookingRoutes);
 router.use('/admin/buses', isAuthenticated, isAdmin, adminBusRoutes);
 router.use('/admin/users', isAuthenticated, isAdmin, adminUserRoutes);
 
+// Payment Routes
+router.use('/payments', isAuthenticated, paymentRoutes);
 // 5. API Documentation Redirect (Optional)
 router.get('/docs', (req, res) => {
     res.redirect('https://api-docs.yourdomain.com');
@@ -46,7 +49,8 @@ router.use('*', (req, res) => {
             '/auth/login',
             '/buses',
             '/bookings',
-            '/health'
+            '/payments/khalti/initiate',
+            '/payments/khalti/verify',
         ]
     });
 });
