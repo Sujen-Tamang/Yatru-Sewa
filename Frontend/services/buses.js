@@ -1,6 +1,5 @@
 // api/busApi.js
 import api from "./api"; // Assuming you have your base api setup
-import axios from 'axios';
 
 export const getAllBuses = async () => {
   try {

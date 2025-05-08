@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { logout } from "../../servcies/auth"
+import { logout } from "../../services/auth"
 
 const Navbar = () => {
   const { currentUser, signOut } = useAuth()
@@ -34,7 +34,7 @@ const Navbar = () => {
               <Link to="/" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>
                 Home
               </Link>
-              <Link to="/bookings" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/bookings' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>
+              <Link to="/BusBookingPage" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/BusBookingPage' ? 'border-blue-500' : 'border-transparent'} ${isActive('/BusBookingPage')}`}>
                 Bookings
               </Link>
               <Link to="/about" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/about' ? 'border-blue-500' : 'border-transparent'} ${isActive('/about')}`}>

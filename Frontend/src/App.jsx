@@ -19,10 +19,12 @@ import HomePage from "./pages/HomePage"
 import AboutPage from "./pages/AboutPage"
 import ContactPage from "./pages/ContactPage"
 import BusBookingPage from "./pages/BusBookingPage"
+import BookingConfirmationPage from "./pages/BookingConfirmationPage"
 
 // Customer Pages
 import CustomerDashboard from "./pages/customer/Dashboard"
 import CustomerBookings from "./pages/customer/Bookings"
+import CustomerBookingDetails from "./pages/customer/BookingDetails"
 
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin"
@@ -67,8 +69,9 @@ function App() {
 
             {/* Customer Protected Routes */}
             {/* <Route element={<ProtectedRoute />}> */}
-              <Route path="/customer" element={<CustomerDashboard />} />
-              <Route path="/customer/bookings" element={<CustomerBookings />} />
+              <Route path="/customer" element={<CustomerBookings />} />
+              <Route path="/customer/my-bookings" element={<CustomerBookings />} />
+              <Route path="/customer/booking-details" element={<CustomerBookingDetails />} />
             {/* </Route> */}
 
             {/* Admin Routes */}
@@ -92,7 +95,7 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/BusBookingPage" element={<BusBookingPage />} />
-              
+              <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
             </Route>
 
             {/* Default route redirects to home */}

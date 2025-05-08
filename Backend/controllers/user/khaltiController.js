@@ -4,15 +4,11 @@ import { AppError } from "../../middlewares/errorMiddleware.js";
 import { Payment } from "../../models/Payment.js";
 import Booking  from "../../models/Booking.js";
 
-/**
- * @desc    Initiate Khalti payment for a booking
- * @route   POST /api/payments/khalti/initiate
- */
+
 export const initiateKhaltiPayment = catchAsyncError(async (req, res, next) => {
     const { bookingId, amount } = req.body;
     const userId = req.user._id;
 
-    // 1. Validate the temporary booking
     const booking = await Booking.findOne({
         _id: bookingId,
         user: userId,
@@ -23,10 +19,8 @@ export const initiateKhaltiPayment = catchAsyncError(async (req, res, next) => {
         return next(new AppError('Invalid or expired booking', 400));
     }
 
-    // 2. Convert amount to paisa (Khalti requirement)
     const amountInPaisa = amount * 100;
 
-    // 3. Prepare Khalti payload with all required fields
     const payload = {
         return_url: `${process.env.KHALTI_RETURN_URL}?booking=${bookingId}`,
         website_url: process.env.FRONTEND_URL || "http://localhost:3000",

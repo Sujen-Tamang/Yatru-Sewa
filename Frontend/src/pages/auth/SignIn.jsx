@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
-import { login } from "../../../servcies/auth"
+import { login } from "../../../services/auth"
 
 const SignIn = () => {
   const [email, setEmail] = useState("")
@@ -40,7 +40,7 @@ const SignIn = () => {
       console.log(result)
 
       if (result.success) {
-        const redirectPath = result.user.role === 'admin' ? '/admin' : '/customer'
+        const redirectPath = result.user.role === 'admin' ? '/admin' : '/'
         navigate(redirectPath, { replace: true })
       } else {
         setError(result.message || "Invalid email or password")

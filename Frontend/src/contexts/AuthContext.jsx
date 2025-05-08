@@ -2,7 +2,7 @@
 import axios from "axios"
 
 import { createContext, useState, useContext, useEffect } from "react"
-import { login } from "../../servcies/auth"
+import { login } from "../../services/auth"
 
 const AuthContext = createContext(null)
 

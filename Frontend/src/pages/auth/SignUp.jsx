@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { register, login } from "../../../servcies/auth"
+import { register, login } from "../../../services/auth"
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -58,7 +58,7 @@ const SignUp = () => {
         if (registrationResult.requireVerification) {
           navigate("/verify", { state: { email } })
         } else {
-          navigate("/dashboard")
+          navigate("/")
         }
       } else {
         throw new Error(loginResult.message || "Automatic login failed")

@@ -1,9 +1,9 @@
 import api from "./api";
-import axios from 'axios';
+import axios from "axios";
 
 export const login = async (logindata) => {
   try {
-    const response = await api.post("/Login", logindata, {
+    const response = await api.post("auth/Login", logindata, {
       withCredentials: true,
     });
 
@@ -38,7 +38,9 @@ export const login = async (logindata) => {
 
 export const register = async (registrationData) => {
   try {
-    const response = await api.post("/register", registrationData);
+    console.log("i am here!")
+    const response = await api.post("auth//register", registrationData);
+    console.log("i am here!")
     return response.data;
   } catch (error) {
     console.error("Registration failed:", error.response?.data || error.message);

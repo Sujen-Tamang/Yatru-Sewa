@@ -1,7 +1,24 @@
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
 import { motion } from "framer-motion"
 
+const allLocations = ["Kathmandu", "Pokhara", "Chitwan", "Butwal", "Biratnagar", "Dharan", "Birgunj", "Nepalgunj"];
+
 const HomePage = () => {
+  const navigate = useNavigate();
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [date, setDate] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!from || !to || !date) return;
+    navigate(`/BusBookingPage?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}`);
+  };
+
+  const availableFrom = to ? allLocations.filter((loc) => loc !== to) : allLocations;
+  const availableTo = from ? allLocations.filter((loc) => loc !== from) : allLocations;
+
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
@@ -34,17 +51,12 @@ const HomePage = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="hidden md:block"
             >
-              {/* <img 
-                src="/bus-hero.jpg" 
-                alt="Bus travel illustration" 
-                className="rounded-2xl shadow-2xl transform hover:scale-105 transition duration-500"
-              /> */}
             </motion.div>
           </div>
         </div>
         
         {/* Wave divider - Adjusted to be at the level of the card */}
-        <div className="absolute bottom-0 left-0 right-0" style={{ bottom: "-140px" }}>
+        <div className="absolute bottom-0 left-0 right-0" style={{ bottom: "-190px" }}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto" preserveAspectRatio="none">
             <path fill="#ffffff" fillOpacity="1" d="M0,160L48,144C96,128,192,96,288,90.7C384,85,480,107,576,122.7C672,139,768,149,864,144C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
           </svg>
@@ -64,39 +76,52 @@ const HomePage = () => {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
               <h2 className="text-2xl font-semibold text-center">Find Your Perfect Bus Route</h2>
             </div>
-            <form className="p-8">
+            <form className="p-8" onSubmit={handleSearch}>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                   <label htmlFor="from" className="block text-sm font-medium text-gray-700 mb-2">From</label>
-                  <select id="from" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                    <option value="" disabled selected>Select departure</option>
-                    <option value="Kathmandu">Kathmandu </option>
-                    <option value="Pokhara">Pokhara</option>
-                    <option value="Chitwan">Chitwan </option>
-                    <option value="Butwal">Butwal </option>
+                  <select
+                    id="from"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    value={from}
+                    onChange={e => setFrom(e.target.value)}
+                  >
+                    <option value="" disabled>Select departure</option>
+                    {availableFrom.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
                   </select>
                 </div>
-                
                 <div>
                   <label htmlFor="to" className="block text-sm font-medium text-gray-700 mb-2">To</label>
-                  <select id="to" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
-                    <option value="" disabled selected>Select destination</option>
-                    <option value="Kathmandu">Kathmandu </option>
-                    <option value="Pokhara">Pokhara</option>
-                    <option value="Chitwan">Chitwan </option>
-                    <option value="Butwal">Butwal </option>
+                  <select
+                    id="to"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    value={to}
+                    onChange={e => setTo(e.target.value)}
+                  >
+                    {availableTo.map((loc) => (
+                      <option key={loc} value={loc}>{loc}</option>
+                    ))}
                   </select>
                 </div>
-                
                 <div>
                   <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                  <input type="date" id="date" className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" />
+                  <input
+                    type="date"
+                    id="date"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    value={date}
+                    onChange={e => setDate(e.target.value)}
+                  />
                 </div>
-                
                 <div className="flex items-end">
-                  <button type="submit" className="w-full bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  <Link to="/BusBookingPage" 
+                  type="submit" 
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
                     Search Buses
-                  </button>
+                  </Link>
                 </div>
               </div>
             </form>
