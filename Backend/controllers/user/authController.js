@@ -1,0 +1,447 @@
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import {User} from "../../models/userModel.js";
+import {sendEmail} from "../../utils/sendEmail.js";
+import {catchAsyncError} from "../../middlewares/catchAsyncError.js";
+import {AppError} from "../../middlewares/errorMiddleware.js";
+
+// Register User
+export const register = catchAsyncError(async (req, res, next) => {
+    const { name, email, phone, password, role, otp } = req.body;
+
+    // 1. Validate all required fields
+    if (!name || !email || !phone || !password || !role) {
+        return next(new AppError("All fields are required.", 400));
+    }
+
+    // 2. Validate Nepal phone number format
+    const validatePhoneNumber = (phone) => /^\+977\d{10}$/.test(phone);
+    if (!validatePhoneNumber(phone)) {
+        return next(new AppError("Invalid phone number format. Use +977XXXXXXXXXX", 400));
+    }
+
+    // 3. Check for existing verified user by phone or email
+    const existingUser = await User.findOne({
+        $or: [
+            { email, accountVerified: true },
+            { phone, accountVerified: true }
+        ]
+    });
+
+    if (existingUser) {
+        const duplicateField = existingUser.email === email ? "Email" : "Phone number";
+        return next(new AppError(`${duplicateField} is already registered`, 400));
+    }
+
+    // 4. Check for unverified duplicates
+    const unverifiedUser = await User.findOneAndDelete({
+        $or: [
+            { email, accountVerified: false },
+            { phone, accountVerified: false }
+        ]
+    });
+
+    if (unverifiedUser) {
+        console.log(`Cleaned up unverified user: ${unverifiedUser._id}`);
+    }
+
+    // 5. Create new user
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+        name,
+        email,
+        phone,
+        password: hashedPassword,
+        role,
+        accountVerified: false,
+        otp,
+    });
+
+    res.status(201).json({
+        success: true,
+        message: "User registered successfully. Please verify your account.",
+        data: { userId: user._id }
+    });
+});
+
+// Send Verification Code
+export const sendVerificationCode = catchAsyncError(async (req, res, next) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return next(new AppError("Email is required", 400));
+    }
+
+    // Find user (including unverified ones)
+    const user = await User.findOne({ email });
+
+    console.log('Pre-verification user status:', {
+        email,
+        exists: !!user,
+        verified: user?.accountVerified,
+        existingCode: user?.verificationCode
+    });
+
+    if (!user) {
+        return next(new AppError("No account found with this email", 404));
+    }
+    if (user.accountVerified) {
+        return next(new AppError("Account is already verified", 400));
+    }
+
+    // Generate new verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+    // Update user document ATOMICALLY
+    const updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+            isVerified: true,
+            verificationCode,
+            verificationCodeExpire: Date.now() + 10 * 60 * 1000 // 10 minutes
+        },
+        { new: true }
+    );
+
+    console.log('Updated user with verification code:', {
+        newCode: updatedUser.verificationCode,
+        expiresAt: new Date(updatedUser.verificationCodeExpire)
+    });
+
+    // Send email
+    const message = `Your verification code is: ${verificationCode}`;
+    await sendEmail({
+        email,
+        subject: "Verify Your Account",
+        message
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Verification code sent to your email",
+        debug: { // Temporary for debugging
+            userId: user._id,
+            codeSaved: verificationCode,
+            expiresIn: "10 minutes"
+        }
+    });
+});
+
+
+
+// Verify OTP
+export const verifyOTP = catchAsyncError(async (req, res, next) => {
+    const { email, otp } = req.body;
+
+    // 1. Input validation
+    if (!email || !otp) {
+        return next(new AppError("Email and OTP are required", 400));
+    }
+
+    // 2. Find user with verification fields (including accountVerified)
+    const user = await User.findOne({ email })
+        .select('+verificationCode +verificationCodeExpire +accountVerified');
+
+    console.log('Verification attempt details:', {
+        email,
+        userExists: !!user,
+        currentVerifiedStatus: user?.accountVerified, // Log current status
+        storedCode: user?.verificationCode,
+        inputCode: otp,
+        codeExpired: user?.verificationCodeExpire
+            ? Date.now() > user.verificationCodeExpire
+            : 'no-expiry'
+    });
+
+    // 3. Validation checks
+    if (!user) {
+        return next(new AppError("No account found with this email", 404));
+    }
+    if (user.accountVerified) {
+        console.log(`User ${email} is already verified`); // Debug log
+        return next(new AppError("Account is already verified", 400));
+    }
+    if (!user.verificationCode) {
+        return next(new AppError("No active verification code found", 400));
+    }
+    if (user.verificationCode !== Number(otp)) {
+        return next(new AppError("Invalid verification code", 400));
+    }
+    if (Date.now() > user.verificationCodeExpire) {
+        return next(new AppError("Verification code has expired", 400));
+    }
+
+    // 4. Update verification status - ATOMIC OPERATION
+    const updatedUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+            $set: {
+                accountVerified: true, // This will change to true
+                verificationCode: null, // Clear the code
+                verificationCodeExpire: null // Clear expiration
+            }
+        },
+        {
+            new: true, // Return the updated document
+            runValidators: true // Ensure validation runs
+        }
+    );
+
+    // 5. Verify the update was successful
+    if (!updatedUser.accountVerified) {
+        console.error('Verification status not updated for user:', email);
+        return next(new AppError("Failed to verify account", 500));
+    }
+
+    console.log('Verification successful for:', {
+        email,
+        newVerifiedStatus: updatedUser.accountVerified, // Should be true
+        updatedAt: updatedUser.updatedAt
+    });
+
+    // 6. Generate token
+    const token = jwt.sign(
+        { id: updatedUser._id, role: updatedUser.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE || '1d' }
+    );
+
+    // 7. Prepare response data
+    const userData = {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        accountVerified: updatedUser.accountVerified // Include verification status
+    };
+
+    // 8. Respond
+    res.status(200).json({
+        success: true,
+        message: "Account verified successfully",
+        token,
+        user: userData
+    });
+});
+
+// User Login
+export const login = catchAsyncError(async (req, res, next) => {
+    const { email, password } = req.body;
+
+    // 1. Validate input
+    if (!email || !password) {
+        return next(new AppError("Email and password are required", 400));
+    }
+
+    // 2. Find user (with password field)
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+        return next(new AppError("Account not found", 401));
+    }
+
+
+    // 4. Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return next(new AppError("Incorrect password", 401));
+    }
+
+    // 5. Generate token
+    const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE || '1d' }
+    );
+
+    // 6. Remove password from output
+    user.password = undefined;
+
+    // 7. Send response
+    res.status(200).json({
+        success: true,
+        token,
+        user
+    });
+});
+// User Logout
+export const logout = catchAsyncError(async (req, res, next) => {
+    res.cookie('token', '', {
+        expires: new Date(Date.now()),
+        httpOnly: true
+    }).json({
+        success: true,
+        message: "Logged out successfully"
+    });
+});
+
+// Get Current User
+export const getCurrentUser = catchAsyncError(async (req, res, next) => {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json({
+        success: true,
+        user
+    });
+});
+
+// Forgot Password
+export const forgotPassword = catchAsyncError(async (req, res, next) => {
+    const { email } = req.body;
+
+    // 1. Input validation
+    if (!email) {
+        return next(new AppError("Email is required", 400));
+    }
+
+    // 2. Find user with ALL necessary fields explicitly selected
+    const user = await User.findOne({ email })
+        .select('+accountVerified +resetPasswordToken +resetPasswordExpire +verificationCode +verificationCodeExpire');
+
+    // 3. Debug logging with proper field access
+    console.log('Password reset request details:', {
+        email,
+        userExists: !!user,
+        accountStatus: user ? {
+            verified: user.accountVerified !== undefined ? user.accountVerified : 'field-not-retrieved',
+            hasActiveReset: user.resetPasswordToken && new Date(user.resetPasswordExpire) > new Date()
+        } : null,
+        dbRecord: user ? {
+            _id: user._id,
+            email: user.email,
+            verified: user.accountVerified,
+            verificationFields: {
+                hasCode: !!user.verificationCode,
+                codeExpires: user.verificationCodeExpire
+            },
+            // Add raw document view for debugging
+            rawDocument: {
+                accountVerified: user.toObject().accountVerified,
+                resetPasswordToken: user.toObject().resetPasswordToken,
+                resetPasswordExpire: user.toObject().resetPasswordExpire
+            }
+        } : null
+    });
+
+    // 4. Verify user exists
+    if (!user) {
+        return next(new AppError("No account found with this email address", 404));
+    }
+
+    // 5. Check verification status with fallback
+    const isVerified = user.accountVerified !== undefined ? user.accountVerified : false;
+    if (!isVerified) {
+        return next(new AppError("Please verify your account before resetting password", 403));
+    }
+    // 5. Check for existing valid reset token
+    if (user.resetPasswordToken && new Date(user.resetPasswordExpire) > new Date()) {
+        return next(new AppError("A password reset link has already been sent to your email", 429));
+    }
+
+    // 6. Generate secure reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // 7. Update user with reset token (30 minute expiry)
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
+    await user.save({ validateBeforeSave: false });
+
+    // 8. Create reset URL
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    // 9. Send email
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Your Password Reset Link',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2563eb;">Password Reset Request</h2>
+                    <p>Hello ${user.name},</p>
+                    <p>We received a request to reset your password. Click the button below to proceed:</p>
+                    <a href="${resetUrl}" 
+                       style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">
+                        Reset Password
+                    </a>
+                    <p>This link will expire in 30 minutes.</p>
+                    <p>If you didn't request this, please ignore this email or contact support.</p>
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                    <p style="font-size: 12px; color: #6b7280;">
+                        For security reasons, this email was sent to ${user.email}.
+                    </p>
+                </div>
+            `,
+            text: `Password Reset Link: ${resetUrl} (Valid for 30 minutes)`
+        });
+
+        // 10. Respond with success
+        res.status(200).json({
+            success: true,
+            message: "Password reset link sent to your email",
+            debug: process.env.NODE_ENV === 'development' ? {
+                userId: user._id,
+                tokenExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+            } : undefined
+        });
+
+    } catch (err) {
+        // 11. Clean up on email failure
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        console.error('Failed to send password reset email:', {
+            error: err.message,
+            stack: err.stack,
+            userId: user._id,
+            email: user.email
+        });
+
+        return next(new AppError("Failed to send password reset email. Please try again later.", 500));
+    }
+});
+
+// Reset Password
+export const resetPassword = catchAsyncError(async (req, res, next) => {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+        return next(new AppError("Passwords do not match", 400));
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        return next(new AppError("Invalid or expired token", 400));
+    }
+
+    // Update password
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    // Automatically log the user in
+    const authToken = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '1d' }
+    );
+
+    res.cookie('token', authToken, {
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    }).json({
+        success: true,
+        message: "Password reset successful",
+        token: authToken
+    });
+});
