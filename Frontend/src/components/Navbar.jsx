@@ -1,22 +1,50 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { logout } from "../../services/auth"
 
 const Navbar = () => {
-  const { currentUser, signOut } = useAuth()
+  const { currentUser, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  const handleSignOut = () => {
-    logout()
-    navigate("/signin")
+  useEffect(() => {
+    // Update authentication state whenever currentUser changes
+    setIsAuthenticated(!!currentUser)
+  }, [currentUser])
+
+  const handleSignOut = async () => {
+    try {
+      await logout()
+      setIsAuthenticated(false)
+      navigate("/auth/signin")
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
   }
 
   const isActive = (path) => {
     return location.pathname === path ? "text-blue-600 font-medium" : "text-gray-700 hover:text-blue-600"
+  }
+
+  if (loading) {
+    return (
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <div className="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold mr-2">
+                BT
+              </div>
+              <span className="text-xl font-bold text-gray-900">BusTracker</span>
+            </div>
+          </div>
+        </div>
+      </nav>
+    )
   }
 
   return (
@@ -34,8 +62,8 @@ const Navbar = () => {
               <Link to="/" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>
                 Home
               </Link>
-              <Link to="/BusBookingPage" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/BusBookingPage' ? 'border-blue-500' : 'border-transparent'} ${isActive('/BusBookingPage')}`}>
-                Bookings
+              <Link to="/bus-booking" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/bus-booking' ? 'border-blue-500' : 'border-transparent'} ${isActive('/bus-booking')}`}>
+                Book Bus
               </Link>
               <Link to="/about" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/about' ? 'border-blue-500' : 'border-transparent'} ${isActive('/about')}`}>
                 About Us
@@ -46,9 +74,12 @@ const Navbar = () => {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {currentUser ? (
+            {isAuthenticated ? (
               <div className="flex items-center space-x-4">
-                <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                <Link to="/customer/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                  Dashboard
+                </Link>
+                <Link to="/customer/bookings" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   My Bookings
                 </Link>
                 <button
@@ -60,11 +91,11 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link to="/signin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                <Link to="/auth/signin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   Sign In
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/auth/signup"
                   className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Sign Up
@@ -99,6 +130,9 @@ const Navbar = () => {
             <Link to="/" className={`block pl-3 pr-4 py-2 border-l-4 ${location.pathname === '/' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
               Home
             </Link>
+            <Link to="/bus-booking" className={`block pl-3 pr-4 py-2 border-l-4 ${location.pathname === '/bus-booking' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
+              Book Bus
+            </Link>
             <Link to="/about" className={`block pl-3 pr-4 py-2 border-l-4 ${location.pathname === '/about' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'}`}>
               About Us
             </Link>
@@ -107,9 +141,12 @@ const Navbar = () => {
             </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
-            {currentUser ? (
+            {isAuthenticated ? (
               <div className="space-y-1">
-                <Link to="/dashboard" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                <Link to="/customer/dashboard" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                  Dashboard
+                </Link>
+                <Link to="/customer/bookings" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
                   My Bookings
                 </Link>
                 <button
@@ -121,10 +158,10 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="space-y-1">
-                <Link to="/signin" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                <Link to="/auth/signin" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
                   Sign In
                 </Link>
-                <Link to="/signup" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
+                <Link to="/auth/signup" className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800">
                   Sign Up
                 </Link>
               </div>

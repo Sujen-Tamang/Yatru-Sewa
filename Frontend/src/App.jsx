@@ -43,6 +43,8 @@ import MainLayout from "./layouts/MainLayout"
 import AdminLayout from "./layouts/AdminLayout"
 import AdminProtectedRoute from "./components/admin/AdminProtectedRoute"
 import ProtectedRoute from "./components/ProtectedRoute"
+import NotFound from "./pages/NotFound"
+import Unauthorized from "./pages/Unauthorized"
 
 function App() {
   useEffect(() => {
@@ -60,25 +62,25 @@ function App() {
           <Routes>
             {/* Auth Routes */}
             <Route element={<AuthLayout />}>
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/verify" element={<TwoStepVerification />} />
-              <Route path="/success" element={<SuccessPage />} />
+              <Route path="/auth/signin" element={<SignIn />} />
+              <Route path="/auth/signup" element={<SignUp />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/verify" element={<TwoStepVerification />} />
+              <Route path="/auth/success" element={<SuccessPage />} />
             </Route>
 
             {/* Customer Protected Routes */}
-            {/* <Route element={<ProtectedRoute />}> */}
-              <Route path="/customer" element={<CustomerBookings />} />
-              <Route path="/customer/my-bookings" element={<CustomerBookings />} />
-              <Route path="/customer/booking-details" element={<CustomerBookingDetails />} />
-            {/* </Route> */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+              <Route path="/customer/bookings" element={<CustomerBookings />} />
+              <Route path="/customer/bookings/:id" element={<CustomerBookingDetails />} />
+            </Route>
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            {/* <Route element={<AdminProtectedRoute />}> */}
+            <Route element={<AdminProtectedRoute />}>
               <Route element={<AdminLayout />}>
-                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/routes" element={<AdminRoutes />} />
                 <Route path="/admin/schedules" element={<AdminSchedules />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
@@ -86,20 +88,21 @@ function App() {
                 <Route path="/admin/payments" element={<AdminPayments />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/admin/drivers" element={<AdminDrivers />} />
-              {/* </Route> */}
+              </Route>
             </Route>
 
-            {/* Main Routes */}
+        
             <Route element={<MainLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
-              <Route path="/BusBookingPage" element={<BusBookingPage />} />
-              <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+              <Route path="/bus-booking" element={<BusBookingPage />} />
+              <Route path="/booking-confirmation/:id" element={<BookingConfirmationPage />} />
             </Route>
 
-            {/* Default route redirects to home */}
-            <Route path="*" element={<HomePage />} />
+            {/* Error Routes */}
+            <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
       </AdminAuthProvider>

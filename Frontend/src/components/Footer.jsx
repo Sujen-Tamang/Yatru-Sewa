@@ -49,10 +49,10 @@ const Footer = () => {
                 <Link to="/contact" className="text-gray-400 hover:text-white">Contact Us</Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white">Careers</Link>
+                <Link to="/bus-booking" className="text-gray-400 hover:text-white">Book Bus</Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white">Press</Link>
+                <Link to="/auth/signin" className="text-gray-400 hover:text-white">Sign In</Link>
               </li>
             </ul>
           </div>
@@ -61,16 +61,16 @@ const Footer = () => {
             <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase mb-4">Services</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white">Bus Tickets</Link>
+                <Link to="/bus-booking" className="text-gray-400 hover:text-white">Bus Tickets</Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white">Bus Tracking</Link>
+                <Link to="/customer/bookings" className="text-gray-400 hover:text-white">My Bookings</Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white">Tour Packages</Link>
+                <Link to="/customer/dashboard" className="text-gray-400 hover:text-white">Dashboard</Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-400 hover:text-white">Corporate Travel</Link>
+                <Link to="/contact" className="text-gray-400 hover:text-white">Support</Link>
               </li>
             </ul>
           </div>
@@ -95,7 +95,7 @@ const Footer = () => {
                 <svg className="h-5 w-5 text-gray-400 mr-2 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span className="text-gray-400"> yatrusewa2025@gmail.com </span>
+                <span className="text-gray-400">yatrusewa2025@gmail.com</span>
               </li>
             </ul>
           </div>
@@ -106,9 +106,9 @@ const Footer = () => {
             &copy; {currentYear} BusTracker. All rights reserved.
           </p>
           <div className="mt-4 flex justify-center space-x-6">
-            <Link to="#" className="text-gray-400 hover:text-white text-sm">Privacy Policy</Link>
-            <Link to="#" className="text-gray-400 hover:text-white text-sm">Terms of Service</Link>
-            <Link to="#" className="text-gray-400 hover:text-white text-sm">Cookie Policy</Link>
+            <Link to="/about" className="text-gray-400 hover:text-white text-sm">Privacy Policy</Link>
+            <Link to="/about" className="text-gray-400 hover:text-white text-sm">Terms of Service</Link>
+            <Link to="/contact" className="text-gray-400 hover:text-white text-sm">Support</Link>
           </div>
         </div>
       </div>

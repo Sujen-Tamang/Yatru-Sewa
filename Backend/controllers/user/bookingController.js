@@ -7,11 +7,7 @@ import nodemailer from 'nodemailer';
 import { Payment } from "../../models/Payment.js";
 import { generateETicket } from "../../utils/eTicketGenerator.js";
 
-/**
- * @desc    Create temporary booking (holds seats)
- * @route   POST /api/bookings/temp
- * @access  Private
- */
+
 export const createTempBooking = catchAsyncError(async (req, res, next) => {
     const { busId, seats, travelDate } = req.body;
     const userId = req.user._id;

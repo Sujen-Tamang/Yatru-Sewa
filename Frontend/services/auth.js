@@ -39,7 +39,7 @@ export const login = async (logindata) => {
 export const register = async (registrationData) => {
   try {
     console.log("i am here!")
-    const response = await api.post("auth//register", registrationData);
+    const response = await api.post("auth/register", registrationData);
     console.log("i am here!")
     return response.data;
   } catch (error) {
@@ -55,7 +55,7 @@ export const logout = async() => {
   try {
     const token = localStorage.getItem('token');
     if (token) {
-      const response = await api.get('/logout', {}, {
+      const response = await api.post('auth/logout', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // Clear all auth data
