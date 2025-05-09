@@ -1,8 +1,6 @@
 import {AppError} from './errorMiddleware.js';
 
-/**
- * Middleware to verify admin privileges
- */
+
 export const isAdmin = (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
         return next(new AppError('Admin access required', 403));
@@ -10,9 +8,6 @@ export const isAdmin = (req, res, next) => {
     next();
 };
 
-/**
- * Middleware for super admin privileges
- */
 export const isSuperAdmin = (req, res, next) => {
     if (!req.user || req.user.role !== 'superadmin') {
         return next(new AppError('Super Admin access required', 403));

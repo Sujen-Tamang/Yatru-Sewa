@@ -14,7 +14,7 @@ const AdminLayout = () => {
   const navItems = [
     {
       name: "Dashboard",
-      path: "/admin",
+      path: "/admin/dashboard",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
@@ -22,20 +22,7 @@ const AdminLayout = () => {
       ),
     },
     {
-      name: "Routes",
-      path: "/admin/routes",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path
-            fillRule="evenodd"
-            d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Schedules",
+      name: "Manage Buses",
       path: "/admin/schedules",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -191,7 +178,6 @@ const AdminLayout = () => {
               </svg>
             </button>
 
-            {/* Page title based on current path */}
             <h1 className="text-xl font-semibold text-gray-700">
               {navItems.find((item) => item.path === location.pathname)?.name || "Admin Panel"}
             </h1>

@@ -3,9 +3,6 @@ import { sendToken } from "../../utils/sendToken.js";
 import { User } from "../../models/userModel.js";
 import { generateVerificationCode } from "../../models/userModel.js";
 
-
-
-// Send verification code to the user's email
 export const sendVerificationEmailCode = async (req, res) => {
     const { email } = req.body;
 
@@ -16,15 +13,13 @@ export const sendVerificationEmailCode = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Generate a verification code
         const verificationCode = user.generateVerificationCode();
 
 
-        // Save the verification code to the user (could be a temporary field in the user model)
         user.verificationCode = verificationCode;
         await user.save();
 
-        // Create an HTML message with the verification code
+
         const message = `
             <p>Hello ${user.name},</p>
             <p>Your verification code is: <strong>${verificationCode}</strong></p>
@@ -38,7 +33,8 @@ export const sendVerificationEmailCode = async (req, res) => {
             message,
         });
 
-        res.status(200).json({ message: 'Verification code sent to email.' });
+        res.status(200)
+        .json({ message: 'Verification code sent to email.' });
 
     } catch (error) {
         console.error("Verification error: ", error);

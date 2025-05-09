@@ -30,7 +30,7 @@ import CustomerBookingDetails from "./pages/customer/BookingDetails"
 import AdminLogin from "./pages/admin/AdminLogin"
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminRoutes from "./pages/admin/Routes"
-import AdminSchedules from "./pages/admin/Schedules"
+import AdminSchedules from "./pages/admin/ManageBuses.jsx"
 import AdminUsers from "./pages/admin/Users"
 import AdminBookings from "./pages/admin/Bookings"
 import AdminPayments from "./pages/admin/Payments"
@@ -69,7 +69,6 @@ function App() {
               <Route path="/auth/success" element={<SuccessPage />} />
             </Route>
 
-            {/* Customer Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/customer/dashboard" element={<CustomerDashboard />} />
               <Route path="/customer/bookings" element={<CustomerBookings />} />
@@ -97,6 +96,7 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/bus-booking" element={<BusBookingPage />} />
+              <Route path="/customer/bookings/details" element={<CustomerBookingDetails />} />
               <Route path="/booking-confirmation/:id" element={<BookingConfirmationPage />} />
             </Route>
 

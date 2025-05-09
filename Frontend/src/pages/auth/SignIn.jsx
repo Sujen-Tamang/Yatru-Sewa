@@ -1,28 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
-import { login } from "../../../services/auth"
+import { useAuth } from "../../contexts/AuthContext"
+import { toast } from "react-toastify"
 
 const SignIn = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const navigate = useNavigate()
   const location = useLocation()
+  const { signIn, currentUser, isAuthenticated, loading } = useAuth()
 
-  // Check for registration success message from navigation state
   const registrationMessage = location.state?.message
   const prefillEmail = location.state?.email || ""
+  const from = location.state?.from || "/"
 
   // Initialize email if coming from registration
-  useState(() => {
+  useEffect(() => {
     if (prefillEmail) {
       setEmail(prefillEmail)
     }
   }, [prefillEmail])
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      navigate(from, { replace: true })
+    }
+  }, [isAuthenticated, currentUser, navigate, from])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,23 +42,21 @@ const SignIn = () => {
 
     try {
       setError("")
-      setLoading(true)
+      setIsSubmitting(true)
 
-      // Call the login service
-      const result = await login({ email, password })
-      console.log(result)
+      const result = await signIn(email, password)
 
       if (result.success) {
-        const redirectPath = result.user.role === 'admin' ? '/admin' : '/'
-        navigate(redirectPath, { replace: true })
+        // No need to navigate here as the useEffect will handle it
+        // when isAuthenticated becomes true
       } else {
-        setError(result.message || "Invalid email or password")
+        setError(result.error || "Invalid email or password")
       }
     } catch (err) {
       console.error("Login error:", err)
       setError("An error occurred during login. Please try again.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -114,10 +121,10 @@ const SignIn = () => {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50"
-          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
+          disabled={isSubmitting || loading}
         >
-          {loading ? (
+          {isSubmitting ? (
             <span className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -153,7 +160,7 @@ const SignIn = () => {
       <div className="mt-6 text-center">
         Don't have an account?{" "}
         <Link 
-          to="/signup" 
+          to="/auth/signup"
           className="text-blue-600 hover:underline font-medium"
         >
           Sign Up

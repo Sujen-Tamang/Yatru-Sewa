@@ -1,28 +1,23 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { logout } from "../../services/auth"
+import { toast } from "react-toastify"
 
 const Navbar = () => {
-  const { currentUser, loading } = useAuth()
+  const { currentUser, loading, isAuthenticated, signOut } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-
-  useEffect(() => {
-    // Update authentication state whenever currentUser changes
-    setIsAuthenticated(!!currentUser)
-  }, [currentUser])
 
   const handleSignOut = async () => {
     try {
-      await logout()
-      setIsAuthenticated(false)
+      await signOut()
+      toast.success("Successfully signed out")
       navigate("/auth/signin")
     } catch (error) {
       console.error("Error signing out:", error)
+      toast.error("Error signing out")
     }
   }
 

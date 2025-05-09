@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { register, login } from "../../../services/auth"
+import { useAuth } from "../../contexts/AuthContext"
+import { toast } from "react-toastify"
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -15,9 +16,10 @@ const SignUp = () => {
   })
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const navigate = useNavigate()
+  const { signUp, signIn, loading } = useAuth()
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -38,35 +40,47 @@ const SignUp = () => {
     if (!agreeTerms) {
       return setError("You must agree to the Terms and Conditions")
     }
+    
+    // Validate phone number format (should be 10 digits)
+    const phoneRegex = /^\d{10}$/
+    if (!phoneRegex.test(phone)) {
+      return setError("Phone number must be 10 digits")
+    }
+    
+    // Format phone number with +977 prefix
+    const formattedData = {
+      ...formData,
+      phone: `+977${phone}`
+    }
 
     try {
       setError("")
-      setLoading(true)
+      setIsSubmitting(true)
       
-      // Register the user
-      const registrationResult = await register(formData)
+      const registrationResult = await signUp(formattedData)
       
       if (!registrationResult.success) {
-        throw new Error(registrationResult.message || "Registration failed")
+        throw new Error(registrationResult.error || "Registration failed")
       }
 
       // Auto-login after successful registration
-      const loginResult = await login({ email, password })
-      console.log(loginResult);
+      const loginResult = await signIn(email, password)
       
       if (loginResult.success) {
+        toast.success("Account created successfully!")
         if (registrationResult.requireVerification) {
           navigate("/verify", { state: { email } })
         } else {
           navigate("/")
         }
       } else {
-        throw new Error(loginResult.message || "Automatic login failed")
+        throw new Error(loginResult.error || "Automatic login failed")
       }
     } catch (err) {
+      toast.error(err.message || "Failed to create an account")
       setError(err.message || "Failed to create an account")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -145,11 +159,14 @@ const SignUp = () => {
             id="phone"
             name="phone"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Phone Number (e.g., +9779801930222)"
+            placeholder="10-digit phone number (without +977)"
             value={formData.phone}
             onChange={handleChange}
+            pattern="\d{10}"
+            maxLength="10"
             required
           />
+          <p className="mt-1 text-xs text-gray-500">+977 will be automatically added</p>
         </div>
 
         <div className="flex items-start">
@@ -178,9 +195,9 @@ const SignUp = () => {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 disabled:opacity-50 flex justify-center items-center"
-          disabled={loading}
+          disabled={isSubmitting || loading}
         >
-          {loading ? (
+          {isSubmitting ? (
             <>
               <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -212,7 +229,7 @@ const SignUp = () => {
 
       <div className="mt-6 text-center text-sm">
         Already have an account?{" "}
-        <Link to="/signin" className="text-blue-600 hover:underline font-medium">
+        <Link to="/auth/signin" className="text-blue-600 hover:underline font-medium">
           Sign In
         </Link>
       </div>

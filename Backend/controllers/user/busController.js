@@ -2,9 +2,7 @@ import Bus from '../../models/Bus.js';
 import { catchAsyncError } from '../../middlewares/catchAsyncError.js';
 import { AppError } from '../../middlewares/errorMiddleware.js';
 
-// @desc    Get all active buses
-// @route   GET /api/buses
-// @access  Public
+
 export const getAvailableBuses = catchAsyncError(async (req, res, next) => {
     const { from, to, date, minSeats } = req.query;
 

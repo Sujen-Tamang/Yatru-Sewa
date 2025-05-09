@@ -65,11 +65,7 @@ export const createTempBooking = catchAsyncError(async (req, res, next) => {
     });
 });
 
-/**
- * @desc    Confirm booking after successful payment
- * @route   POST /api/bookings/confirm
- * @access  Private
- */
+
 export const confirmBooking = catchAsyncError(async (req, res, next) => {
     const { bookingId, paymentId } = req.body;
     const userId = req.user._id;
