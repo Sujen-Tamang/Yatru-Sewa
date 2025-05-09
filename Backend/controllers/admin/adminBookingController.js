@@ -16,8 +16,7 @@ export const getAllBookings = catchAsyncError(async (req, res, next) => {
     });
 });
 
-// ... rest of your controller methods
-// Get booking details (admin only)
+
 export const getBookingDetails = catchAsyncError(async (req, res, next) => {
     const booking = await Booking.findById(req.params.id)
         .populate('user', 'name email phone')

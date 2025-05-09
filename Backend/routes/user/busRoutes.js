@@ -8,8 +8,7 @@ import {isAuthenticated} from "../../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.route('/')
-    .get(getAvailableBuses);
+router.route('/').get(getAvailableBuses);
 
 router.route('/:id/seats')
     .get(getBusWithSeats);

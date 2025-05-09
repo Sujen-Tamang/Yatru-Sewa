@@ -10,7 +10,7 @@ export const createBus = catchAsyncError(async (req, res, next) => {
         busNumber,
         route,
         schedule,
-        totalSeats,
+        totalSeats:24,
         price
     });
 

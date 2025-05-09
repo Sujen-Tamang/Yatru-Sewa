@@ -1,82 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
-// Sample data for users
-const initialUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (123) 456-7890",
-    joinDate: "2023-01-15",
-    status: "Active",
-    bookingsCount: 12,
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    phone: "+1 (234) 567-8901",
-    joinDate: "2023-02-03",
-    status: "Active",
-    bookingsCount: 8,
-  },
-  {
-    id: 3,
-    name: "Michael Johnson",
-    email: "michael.j@example.com",
-    phone: "+1 (345) 678-9012",
-    joinDate: "2023-02-17",
-    status: "Active",
-    bookingsCount: 5,
-  },
-  {
-    id: 4,
-    name: "Emily Brown",
-    email: "emily.b@example.com",
-    phone: "+1 (456) 789-0123",
-    joinDate: "2023-03-05",
-    status: "Inactive",
-    bookingsCount: 3,
-  },
-  {
-    id: 5,
-    name: "David Wilson",
-    email: "david.w@example.com",
-    phone: "+1 (567) 890-1234",
-    joinDate: "2023-03-22",
-    status: "Active",
-    bookingsCount: 7,
-  },
-  {
-    id: 6,
-    name: "Sarah Taylor",
-    email: "sarah.t@example.com",
-    phone: "+1 (678) 901-2345",
-    joinDate: "2023-04-10",
-    status: "Active",
-    bookingsCount: 4,
-  },
-  {
-    id: 7,
-    name: "James Anderson",
-    email: "james.a@example.com",
-    phone: "+1 (789) 012-3456",
-    joinDate: "2023-04-28",
-    status: "Inactive",
-    bookingsCount: 0,
-  },
-  {
-    id: 8,
-    name: "Lisa Thomas",
-    email: "lisa.t@example.com",
-    phone: "+1 (890) 123-4567",
-    joinDate: "2023-05-15",
-    status: "Active",
-    bookingsCount: 2,
-  },
-]
+import { getAllUsers, updateUser, deleteUser } from "../../../services/adminService"
+import { toast } from "react-toastify"
 
 const Users = () => {
   const [users, setUsers] = useState([])
@@ -87,12 +13,35 @@ const Users = () => {
   const [viewUserDetails, setViewUserDetails] = useState(null)
 
   useEffect(() => {
-    // Simulate API call to fetch users
-    const fetchUsers = () => {
-      setTimeout(() => {
-        setUsers(initialUsers)
+    const fetchUsers = async () => {
+      setLoading(true)
+      try {
+        const response = await getAllUsers()
+        if (response.success && response.data && response.data.data) {
+          console.log('Users fetched successfully:', response.data.data)
+          // Format the user data to match our component's expectations
+          const formattedUsers = response.data.data.map(user => ({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone || 'N/A',
+            joinDate: new Date(user.createdAt).toISOString().split('T')[0],
+            isVerified: user.isVerified,
+            verificationStatus: user.isVerified ? 'Verified' : 'Not Verified',
+            role: user.role,
+            bookingsCount: 0 // We don't have this info yet, could be fetched separately
+          }))
+          setUsers(formattedUsers)
+        } else {
+          console.error('Failed to fetch users:', response.message)
+          toast.error('Failed to fetch users')
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error)
+        toast.error('Error fetching users')
+      } finally {
         setLoading(false)
-      }, 1000)
+      }
     }
 
     fetchUsers()
@@ -124,20 +73,15 @@ const Users = () => {
       user.phone.includes(searchTerm)
 
     if (filterStatus === "all") return matchesSearch
-    return matchesSearch && user.status === filterStatus
+    const isVerified = filterStatus === "Verified"
+    return matchesSearch && user.isVerified === isVerified
   })
 
   const handleViewUserDetails = (user) => {
     setViewUserDetails(user)
   }
 
-  const handleToggleStatus = (id) => {
-    setUsers(
-      users.map((user) =>
-        user.id === id ? { ...user, status: user.status === "Active" ? "Inactive" : "Active" } : user,
-      ),
-    )
-  }
+  // Removed handleToggleStatus function as it's no longer needed
 
   if (loading) {
     return (
@@ -197,8 +141,8 @@ const Users = () => {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="all">All Users</option>
-            <option value="Active">Active Only</option>
-            <option value="Inactive">Inactive Only</option>
+            <option value="Verified">Verified Only</option>
+            <option value="Not Verified">Not Verified Only</option>
           </select>
         </div>
       </div>
@@ -281,38 +225,19 @@ const Users = () => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Status
+                  Verification
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("bookingsCount")}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  <div className="flex items-center">
-                    Bookings
-                    {sortConfig.key === "bookingsCount" && (
-                      <svg
-                        className="ml-1 h-4 w-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        {sortConfig.direction === "asc" ? (
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          />
-                        ) : (
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 9.707a1 1 0 011.414 0L10 13.414l3.293-3.707a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                            clipRule="evenodd"
-                          />
-                        )}
-                      </svg>
-                    )}
-                  </div>
+                  Role
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Bookings
                 </th>
                 <th
                   scope="col"
@@ -324,7 +249,7 @@ const Users = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -346,31 +271,24 @@ const Users = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.joinDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.status === "Active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {user.status}
-                    </span>
+                    {user.isVerified ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Not Verified
+                      </span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.bookingsCount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.role}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.bookingsCount || 0}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleViewUserDetails(user)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      className="text-blue-600 hover:text-blue-900"
                     >
                       View
-                    </button>
-                    <button
-                      onClick={() => handleToggleStatus(user.id)}
-                      className={`${
-                        user.status === "Active"
-                          ? "text-red-600 hover:text-red-900"
-                          : "text-green-600 hover:text-green-900"
-                      }`}
-                    >
-                      {user.status === "Active" ? "Deactivate" : "Activate"}
                     </button>
                   </td>
                 </tr>
@@ -378,7 +296,7 @@ const Users = () => {
 
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="8" className="px-6 py-4 text-center text-sm text-gray-500">
                     No users found matching your criteria.
                   </td>
                 </tr>
@@ -417,9 +335,9 @@ const Users = () => {
                       <div className="ml-4">
                         <h4 className="text-lg font-semibold text-gray-900">{viewUserDetails.name}</h4>
                         <p
-                          className={`text-sm ${viewUserDetails.status === "Active" ? "text-green-600" : "text-red-600"}`}
+                          className={`text-sm ${viewUserDetails.isVerified ? "text-green-600" : "text-gray-600"}`}
                         >
-                          {viewUserDetails.status}
+                          {viewUserDetails.verificationStatus}
                         </p>
                       </div>
                     </div>

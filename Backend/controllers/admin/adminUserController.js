@@ -15,7 +15,6 @@ export const getAllUsers = async (req, res, next) => {
     }
 };
 
-// Get single user by ID (admin only)
 export const getUserById = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.id).select('-password');
