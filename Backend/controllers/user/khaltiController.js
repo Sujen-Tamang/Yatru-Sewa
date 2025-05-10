@@ -79,10 +79,7 @@ export const initiateKhaltiPayment = catchAsyncError(async (req, res, next) => {
         return next(new AppError('Failed to initiate payment', 500));
     }
 });
-/**
- * @desc    Verify Khalti payment (webhook/callback)
- * @route   POST /api/payments/khalti/verify
- */
+
 export const verifyKhaltiPayment = catchAsyncError(async (req, res, next) => {
     const { pidx, transaction_id, amount } = req.body;
     const bookingId = req.query.booking;

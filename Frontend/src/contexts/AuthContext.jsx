@@ -2,7 +2,7 @@
 import axios from "axios"
 
 import { createContext, useState, useContext, useEffect } from "react"
-import { login, logout, register } from "../../services/auth"
+import { login, logout, register, requestVerification, verifyEmail } from "../../services/auth"
 import { toast } from "react-toastify"
 
 const AuthContext = createContext(null)
@@ -120,6 +120,68 @@ export const AuthProvider = ({ children }) => {
     return currentUser.role === role
   }
 
+  // Request verification code for user
+  const requestUserVerification = async () => {
+    if (!currentUser || !currentUser.email) {
+      toast.error("You must be logged in to request verification")
+      return { success: false, error: "User not logged in" }
+    }
+
+    try {
+      setLoading(true)
+      const result = await requestVerification(currentUser.email)
+
+      if (result.success) {
+        toast.success("Verification code sent to your email")
+        return { success: true }
+      } else {
+        toast.error(result.message || "Failed to send verification code")
+        return { success: false, error: result.message }
+      }
+    } catch (error) {
+      toast.error("An error occurred while requesting verification")
+      return { success: false, error: "An error occurred while requesting verification" }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Verify user with code
+  const verifyUser = async (verificationCode) => {
+    if (!currentUser || !currentUser.email) {
+      toast.error("You must be logged in to verify your account")
+      return { success: false, error: "User not logged in" }
+    }
+
+    try {
+      setLoading(true)
+      console.log("Verifying user with:", {
+        email: currentUser.email,
+        verificationCode: verificationCode
+      })
+      
+      const result = await verifyEmail(currentUser.email, verificationCode)
+      console.log("Verification API response:", result)
+
+      if (result.success) {
+        // Update the current user with verified status
+        setCurrentUser(prev => ({ ...prev, isVerified: true }))
+        toast.success("Your account has been verified!")
+        return { success: true }
+      } else {
+        console.error("Verification failed:", result.message || "Unknown error")
+        toast.error(result.message || "Verification failed")
+        return { success: false, error: result.message }
+      }
+    } catch (error) {
+      console.error("Verification error:", error)
+      toast.error(error.message || "An error occurred during verification")
+      return { success: false, error: error.message || "An error occurred during verification" }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const value = {
     currentUser,
     isAuthenticated: !!currentUser,
@@ -128,7 +190,9 @@ export const AuthProvider = ({ children }) => {
     signOut,
     hasRole,
     loading,
-    authChecked
+    authChecked,
+    requestUserVerification,
+    verifyUser
   }
 
   return (

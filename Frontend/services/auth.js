@@ -16,6 +16,7 @@ export const login = async (logindata) => {
       email: user.email,
       phone: user.phone,
       id: user.id,
+      token: token, // Store token in user object for easy access
     };
 
     localStorage.setItem("token", token);
@@ -58,7 +59,6 @@ export const logout = async() => {
       const response = await api.post('auth/logout', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Clear all auth data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       delete axios.defaults.headers.common['Authorization'];
@@ -68,5 +68,119 @@ export const logout = async() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
+  }
+};
+
+// Request email verification code
+export const requestVerification = async (email) => {
+  try {
+    const response = await api.post("auth/send-verification", { email });
+    return {
+      success: true,
+      message: response.data.message || "Verification code sent successfully"
+    };
+  } catch (error) {
+    console.error("Verification request failed:", error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to send verification code"
+    };
+  }
+};
+
+// Verify email with code
+export const verifyEmail = async (email, verificationCode) => {
+  try {
+    // Convert verificationCode to a number since backend expects a number
+    const numericOtp = Number(verificationCode);
+    
+    console.log('Sending verification request with:', { 
+      email, 
+      otp: numericOtp,
+      originalOtp: verificationCode
+    });
+    
+    const response = await api.post("auth/verify-otp", {
+      email,
+      otp: numericOtp // Convert to number as the backend compares with Number(otp)
+    });
+    
+    console.log('Verification response:', response.data);
+    
+    // Update user data in localStorage if verification successful
+    if (response.data.success) {
+      const userData = JSON.parse(localStorage.getItem("user"));
+      if (userData) {
+        userData.isVerified = true;
+        localStorage.setItem("user", JSON.stringify(userData));
+      }
+    }
+    
+    return {
+      success: true,
+      message: response.data.message || "Email verified successfully",
+      data: response.data
+    };
+  } catch (error) {
+    console.error("Email verification failed:", error);
+    console.error("Response data:", error.response?.data);
+    
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to verify email",
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Request password reset token
+ * @param {string} email - User's email address
+ * @returns {Promise<Object>} - Response with success status and message
+ */
+export const forgotPassword = async (email) => {
+  try {
+    const response = await api.post("auth/forgot-password", { email });
+    
+    console.log('Forgot password response:', response.data);
+    
+    return {
+      success: true,
+      message: response.data.message || "Password reset instructions sent to your email"
+    };
+  } catch (error) {
+    console.error("Forgot password request failed:", error.response?.data || error.message);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || "Failed to request password reset. Please try again." 
+    };
+  }
+};
+
+export const resetPassword = async (passwordData, token) => {
+  try {
+    if (passwordData.password !== passwordData.confirmPassword) {
+      return { success: false, message: "Passwords do not match" };
+    }
+    
+    // Call the reset password API endpoint
+    const response = await api.put(`auth/reset-password/${token}`, {
+      password: passwordData.password,
+      confirmPassword: passwordData.confirmPassword
+    });
+    
+    console.log('Reset password response:', response.data);
+    
+    return {
+      success: true,
+      message: "Password reset successfully",
+      data: response.data
+    };
+  } catch (error) {
+    console.error("Password reset failed:", error.response?.data || error.message);
+    return { 
+      success: false, 
+      message: error.response?.data?.message || "Failed to reset password. Please try again." 
+    };
   }
 };

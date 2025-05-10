@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAvailableSeats } from "../../../services/busService";
+import { useAuth } from "../../contexts/AuthContext";
+import { toast } from "react-toastify";
 import { FaUser, FaPhone, FaEnvelope, FaRupeeSign, FaBus, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaTicketAlt } from "react-icons/fa";
 
 // Constants for seat layout
@@ -9,6 +11,7 @@ const seatLetters = ["A", "B", "C", "D"];
 const BookingDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { currentUser, isAuthenticated } = useAuth();
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
   const [payment, setPayment] = useState("Khalti");
@@ -186,6 +189,53 @@ const BookingDetails = () => {
     setPayment(e.target.value);
   };
 
+  // Handle proceed to payment
+  const handleProceedToPayment = () => {
+    console.log("done till here!");
+    
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast.error("Please sign in to proceed with payment");
+      // Save booking details to session storage before redirecting
+      sessionStorage.setItem('pendingBooking', JSON.stringify({
+        busData,
+        journeyDate,
+        selectedSeats,
+        payment,
+        totalPrice
+      }));
+      navigate('/auth/signin', { state: { from: location.pathname } });
+      return;
+    }
+    
+    // Check if user's account is verified
+    if (!currentUser?.isVerified) {
+      toast.error("Your account needs to be verified before making a payment");
+      // Save booking details to session storage
+      sessionStorage.setItem('pendingBooking', JSON.stringify({
+        busData,
+        journeyDate,
+        selectedSeats,
+        payment,
+        totalPrice
+      }));
+      // Redirect to verification page
+      navigate('/auth/verify', { state: { from: location.pathname } });
+      return;
+    }
+
+    // If authenticated and verified, proceed to payment page
+    navigate('/payment', {
+      state: {
+        busData,
+        journeyDate,
+        selectedSeats,
+        paymentMethod: payment,
+        amount: totalPrice
+      }
+    });
+  };
+
   const ticketPrice = busData?.price || (busData?.data?.price) || 700;
   const totalPrice = ticketPrice * selectedSeats.length;
 
@@ -242,16 +292,13 @@ const BookingDetails = () => {
                               const seatNumber = seat.number;
                               const isAvailable = seat.available;
                               const isSelected = selectedSeats.includes(seatNumber);
-                              
-                              // Parse row and column from seat number (e.g., "1A" -> row 1, col A)
+
                               const row = parseInt(seatNumber.match(/^\d+/)[0]);
                               const col = seatNumber.charAt(seatNumber.length - 1);
                               
                               // Get column index based on letter (A=0, B=1, C=2, D=3)
                               const colIdx = seatLayout.letters.indexOf(col);
-                              
-                              // Determine position class for proper layout
-                              // Columns A & B on left side, C & D on right side
+
                               let positionClass = "";
                               if (colIdx === 2 && seatLayout.letters[colIdx-1] !== col) {
                                 positionClass = "ml-4"; // Add gap between columns B and C
@@ -285,45 +332,7 @@ const BookingDetails = () => {
                 </div>
               </div>
             </div>
-            {/* Passenger Info */}
-            <div className="mb-8">
-              <h3 className="font-semibold mb-3">Passenger Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <input
-                      type="text"
-                      name="name"
-                      value={form.name}
-                      onChange={handleFormChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter passenger's full name"
-                      required
-                  />
-                </div>
-                <div>
-                  <input
-                      type="tel"
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleFormChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter 10-digit phone number"
-                      required
-                  />
-                </div>
-                <div>
-                  <input
-                      type="email"
-                      name="email"
-                      value={form.email}
-                      onChange={handleFormChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter email for confirmation"
-                      required
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Passenger Info section removed */}
             {/* Payment Method */}
             <div className="mb-8">
               <h3 className="font-semibold mb-3">Payment Method</h3>
@@ -340,7 +349,8 @@ const BookingDetails = () => {
             </div>
             <button
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 text-lg transition-all"
-                disabled={selectedSeats.length === 0 || !form.name || !form.phone || !form.email}
+                disabled={selectedSeats.length === 0}
+                onClick={handleProceedToPayment}
             >
               <FaRupeeSign /> Proceed to Payment (NPR {totalPrice})
             </button>

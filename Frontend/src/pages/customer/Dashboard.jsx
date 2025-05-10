@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { useState, useEffect, useRef } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import { motion } from "framer-motion"
+import { toast } from "react-toastify"
 
 const Dashboard = () => {
-  const { currentUser } = useAuth()
+  const { currentUser, loading } = useAuth()
+  const navigate = useNavigate()
   const [upcomingTrips, setUpcomingTrips] = useState([])
   const [recentActivity, setRecentActivity] = useState([])
   const [stats, setStats] = useState({
@@ -76,6 +78,11 @@ const Dashboard = () => {
       ]
     })
   }, [])
+
+  // Navigate to verification page
+  const handleVerifyAccount = () => {
+    navigate("/auth/verify")
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -240,12 +247,13 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
-          {/* Recent Activity */}
+          {/* Recent Activity and Profile */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
+            {/* Recent Activity */}
             <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
               <div className="p-6 border-b border-gray-100">
                 <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
@@ -300,30 +308,67 @@ const Dashboard = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{currentUser?.name || "Demo User"}</h3>
                     <p className="text-gray-500">{currentUser?.email || "user@example.com"}</p>
+                    {currentUser?.isVerified ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
+                        <svg className="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                          <circle cx="4" cy="4" r="3" />
+                        </svg>
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-1">
+                        <svg className="-ml-0.5 mr-1.5 h-2 w-2 text-yellow-400" fill="currentColor" viewBox="0 0 8 8">
+                          <circle cx="4" cy="4" r="3" />
+                        </svg>
+                        Not Verified
+                      </span>
+                    )}
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Phone</span>
-                    <span className="text-gray-900">+977 9812345678</span>
+                    <span className="text-gray-900">{currentUser?.phone || "+977 9812345678"}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Member Since</span>
                     <span className="text-gray-900">May 2023</span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Verification Status</span>
+                    <span className={`text-sm font-medium ${currentUser?.isVerified ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {currentUser?.isVerified ? 'Verified' : 'Not Verified'}
+                    </span>
+                  </div>
                 </div>
                 
-                <div className="mt-6">
+                <div className="mt-6 space-y-2">
                   <Link to="/customer/profile" className="block w-full bg-gray-100 text-gray-800 text-center px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
                     Edit Profile
                   </Link>
+                  
+                  <Link to="/customer/change-password" className="block w-full bg-gray-100 text-gray-800 text-center px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors">
+                    Reset Password
+                  </Link>
+                  
+                  {!currentUser?.isVerified && (
+                    <button 
+                      onClick={handleVerifyAccount}
+                      className="block w-full bg-blue-600 text-white text-center px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      disabled={loading}
+                    >
+                      Verify Account
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
+
+      {/* No verification modal needed - redirecting to TwoStepVerification page instead */}
     </div>
   )
 }

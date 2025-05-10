@@ -6,6 +6,6 @@ const router = express.Router();
 
 // Khalti payment routes
 router.post('/khalti/initiate', isAuthenticated, initiateKhaltiPayment);
-router.post('/khalti/verify', verifyKhaltiPayment); // Webhook/callback
+router.post('/khalti/verify', verifyKhaltiPayment);
 
 export default router;

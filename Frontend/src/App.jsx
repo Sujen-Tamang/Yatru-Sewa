@@ -25,6 +25,7 @@ import BookingConfirmationPage from "./pages/BookingConfirmationPage"
 import CustomerDashboard from "./pages/customer/Dashboard"
 import CustomerBookings from "./pages/customer/Bookings"
 import CustomerBookingDetails from "./pages/customer/BookingDetails"
+import ChangePassword from "./pages/customer/ChangePassword"
 
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin"
@@ -73,6 +74,7 @@ function App() {
               <Route path="/customer/dashboard" element={<CustomerDashboard />} />
               <Route path="/customer/bookings" element={<CustomerBookings />} />
               <Route path="/customer/bookings/:id" element={<CustomerBookingDetails />} />
+              <Route path="/customer/change-password" element={<ChangePassword />} />
             </Route>
 
             {/* Admin Routes */}

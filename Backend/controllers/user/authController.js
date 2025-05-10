@@ -5,6 +5,7 @@ import {User} from "../../models/userModel.js";
 import {sendEmail} from "../../utils/sendEmail.js";
 import {catchAsyncError} from "../../middlewares/catchAsyncError.js";
 import {AppError} from "../../middlewares/errorMiddleware.js";
+import mongoose from "mongoose";
 
 // Register User
 export const register = catchAsyncError(async (req, res, next) => {
@@ -24,8 +25,8 @@ export const register = catchAsyncError(async (req, res, next) => {
     // 3. Check for existing verified user by phone or email
     const existingUser = await User.findOne({
         $or: [
-            { email, accountVerified: true },
-            { phone, accountVerified: true }
+            { email, isVerified: true },
+            { phone, isVerified: true }
         ]
     });
 
@@ -37,8 +38,8 @@ export const register = catchAsyncError(async (req, res, next) => {
     // 4. Check for unverified duplicates
     const unverifiedUser = await User.findOneAndDelete({
         $or: [
-            { email, accountVerified: false },
-            { phone, accountVerified: false }
+            { email, isVerified: false },
+            { phone, isVerified: false }
         ]
     });
 
@@ -54,7 +55,7 @@ export const register = catchAsyncError(async (req, res, next) => {
         phone,
         password: hashedPassword,
         role,
-        accountVerified: false,
+        isVerified: false,
         otp,
     });
 
@@ -79,14 +80,14 @@ export const sendVerificationCode = catchAsyncError(async (req, res, next) => {
     console.log('Pre-verification user status:', {
         email,
         exists: !!user,
-        verified: user?.accountVerified,
+        verified: user?.isVerified,
         existingCode: user?.verificationCode
     });
 
     if (!user) {
         return next(new AppError("No account found with this email", 404));
     }
-    if (user.accountVerified) {
+    if (user.isVerified) {
         return next(new AppError("Account is already verified", 400));
     }
 
@@ -97,7 +98,6 @@ export const sendVerificationCode = catchAsyncError(async (req, res, next) => {
     const updatedUser = await User.findByIdAndUpdate(
         user._id,
         {
-            isVerified: true,
             verificationCode,
             verificationCodeExpire: Date.now() + 10 * 60 * 1000 // 10 minutes
         },
@@ -135,94 +135,109 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
     const { email, otp } = req.body;
 
     // 1. Input validation
-    if (!email || !otp) {
+    if (!email ||  !otp) {
         return next(new AppError("Email and OTP are required", 400));
     }
 
-    // 2. Find user with verification fields (including accountVerified)
-    const user = await User.findOne({ email })
-        .select('+verificationCode +verificationCodeExpire +accountVerified');
+    const session = await mongoose.startSession();
+    try {
+        session.startTransaction();
 
-    console.log('Verification attempt details:', {
-        email,
-        userExists: !!user,
-        currentVerifiedStatus: user?.accountVerified, // Log current status
-        storedCode: user?.verificationCode,
-        inputCode: otp,
-        codeExpired: user?.verificationCodeExpire
-            ? Date.now() > user.verificationCodeExpire
-            : 'no-expiry'
-    });
+        // 2. Find user with verification fields
+        const user = await User.findOne({ email })
+            .select('+verificationCode +verificationCodeExpire +isVerified')
+            .session(session);
 
-    // 3. Validation checks
-    if (!user) {
-        return next(new AppError("No account found with this email", 404));
-    }
-    if (user.accountVerified) {
-        console.log(`User ${email} is already verified`); // Debug log
-        return next(new AppError("Account is already verified", 400));
-    }
-    if (!user.verificationCode) {
-        return next(new AppError("No active verification code found", 400));
-    }
-    if (user.verificationCode !== Number(otp)) {
-        return next(new AppError("Invalid verification code", 400));
-    }
-    if (Date.now() > user.verificationCodeExpire) {
-        return next(new AppError("Verification code has expired", 400));
-    }
+        console.log('Pre-verification state:', {
+            email,
+            userId: user?._id,
+            isVerified: user?.isVerified,
+            verificationCode: user?.verificationCode,
+            codeExpires: user?.verificationCodeExpire,
+            currentTime: new Date()
+        });
 
-    // 4. Update verification status - ATOMIC OPERATION
-    const updatedUser = await User.findByIdAndUpdate(
-        user._id,
-        {
-            $set: {
-                accountVerified: true, // This will change to true
-                verificationCode: null, // Clear the code
-                verificationCodeExpire: null // Clear expiration
-            }
-        },
-        {
-            new: true, // Return the updated document
-            runValidators: true // Ensure validation runs
+        // 3. Validation checks
+        if (!user) {
+            return next(new AppError("No account found with this email", 404));
         }
-    );
+        if (user.isVerified) {
+            return next(new AppError("Account is already verified", 400));
+        }
+        if (!user.verificationCode) {
+            return next(new AppError("No active verification code found", 400));
+        }
+        if (user.verificationCode !== Number(otp)) {
+            return next(new AppError("Invalid verification code", 400));
+        }
+        if (Date.now() > user.verificationCodeExpire) {
+            return next(new AppError("Verification code has expired", 400));
+        }
 
-    // 5. Verify the update was successful
-    if (!updatedUser.accountVerified) {
-        console.error('Verification status not updated for user:', email);
+        // 4. Update user verification status
+        const updatedUser = await User.findByIdAndUpdate(
+            user._id,
+            {
+                $set: {
+                    isVerified: true,
+                    verificationCode: null,
+                    verificationCodeExpire: null
+                }
+            },
+            {
+                new: true,
+                runValidators: true,
+                session
+            }
+        ).lean();
+
+        console.log('Immediate update result:', updatedUser);
+
+        // 5. Verify the update from database directly
+        const dbUser = await User.findById(user._id).session(session).lean();
+        console.log('Database state post-update:', {
+            isVerified: dbUser.isVerified,
+            verificationCode: dbUser.verificationCode,
+            verificationCodeExpire: dbUser.verificationCodeExpire
+        });
+
+        if (!dbUser.isVerified) {
+            throw new Error('Verification status not persisted');
+        }
+
+        // 6. Generate JWT token
+        const token = jwt.sign(
+            { id: dbUser._id, role: dbUser.role },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRE || '1d' }
+        );
+
+        await session.commitTransaction();
+
+        // 7. Respond with success
+        res.status(200).json({
+            success: true,
+            message: "Account verified successfully",
+            token,
+            user: {
+                id: dbUser._id,
+                name: dbUser.name,
+                email: dbUser.email,
+                role: dbUser.role,
+                isVerified: dbUser.isVerified
+            }
+        });
+
+    } catch (error) {
+        await session.abortTransaction();
+        console.error('Verification failed:', {
+            error: error.message,
+            stack: error.stack
+        });
         return next(new AppError("Failed to verify account", 500));
+    } finally {
+        session.endSession();
     }
-
-    console.log('Verification successful for:', {
-        email,
-        newVerifiedStatus: updatedUser.accountVerified, // Should be true
-        updatedAt: updatedUser.updatedAt
-    });
-
-    // 6. Generate token
-    const token = jwt.sign(
-        { id: updatedUser._id, role: updatedUser.role },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRE || '1d' }
-    );
-
-    // 7. Prepare response data
-    const userData = {
-        id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        accountVerified: updatedUser.accountVerified // Include verification status
-    };
-
-    // 8. Respond
-    res.status(200).json({
-        success: true,
-        message: "Account verified successfully",
-        token,
-        user: userData
-    });
 });
 
 // User Login
@@ -242,7 +257,6 @@ export const login = catchAsyncError(async (req, res, next) => {
     }
 
 
-    // 4. Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
         return next(new AppError("Incorrect password", 401));
@@ -289,34 +303,31 @@ export const getCurrentUser = catchAsyncError(async (req, res, next) => {
 export const forgotPassword = catchAsyncError(async (req, res, next) => {
     const { email } = req.body;
 
-    // 1. Input validation
     if (!email) {
         return next(new AppError("Email is required", 400));
     }
 
-    // 2. Find user with ALL necessary fields explicitly selected
     const user = await User.findOne({ email })
-        .select('+accountVerified +resetPasswordToken +resetPasswordExpire +verificationCode +verificationCodeExpire');
+        .select('+isVerified +resetPasswordToken +resetPasswordExpire +verificationCode +verificationCodeExpire');
 
-    // 3. Debug logging with proper field access
     console.log('Password reset request details:', {
         email,
         userExists: !!user,
         accountStatus: user ? {
-            verified: user.accountVerified !== undefined ? user.accountVerified : 'field-not-retrieved',
+            verified: user.isVerified !== undefined ? user.isVerified : 'field-not-retrieved',
             hasActiveReset: user.resetPasswordToken && new Date(user.resetPasswordExpire) > new Date()
         } : null,
         dbRecord: user ? {
             _id: user._id,
             email: user.email,
-            verified: user.accountVerified,
+            verified: user.isVerified,
             verificationFields: {
                 hasCode: !!user.verificationCode,
                 codeExpires: user.verificationCodeExpire
             },
             // Add raw document view for debugging
             rawDocument: {
-                accountVerified: user.toObject().accountVerified,
+                isVerified: user.toObject().isVerified,
                 resetPasswordToken: user.toObject().resetPasswordToken,
                 resetPasswordExpire: user.toObject().resetPasswordExpire
             }
@@ -329,7 +340,7 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
     }
 
     // 5. Check verification status with fallback
-    const isVerified = user.accountVerified !== undefined ? user.accountVerified : false;
+    const isVerified = user.isVerified !== undefined ? user.isVerified : false;
     if (!isVerified) {
         return next(new AppError("Please verify your account before resetting password", 403));
     }
