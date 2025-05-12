@@ -130,7 +130,7 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section id="how-it-works" className="py-24 bg-gray-50">
+      <section id="how-it-works" className="py-24 bg-gradient-to-r from-blue-600 to-indigo-700 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -139,8 +139,8 @@ const HomePage = () => {
             transition={{ duration: 0.5 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose BusTracker</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">We provide the best bus ticketing and tracking experience with features designed for your comfort and convenience.</p>
+            <h2 className="text-4xl font-bold text-white-900 mb-4">Why Choose BusTracker</h2>
+            <p className="text-xl text-gray-100 max-w-3xl mx-auto">We provide the best bus ticketing and tracking experience with features designed for your comfort and convenience.</p>
           </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -292,59 +292,6 @@ const HomePage = () => {
               />
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* App Download Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Download Our Mobile App</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Get the BusTracker app for a seamless experience on the go. Book tickets, track buses, and manage your journeys from your smartphone.</p>
-          </motion.div>
-          
-          <div className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-8">
-            <motion.a
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              href="#"
-              className="flex items-center bg-black text-white px-8 py-4 rounded-xl hover:bg-gray-900 transition duration-300 transform hover:scale-105"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" />
-                <path fillRule="evenodd" d="M10 4a1 1 0 100 2 1 1 0 000-2zm0 10a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <div className="text-xs">Download on the</div>
-                <div className="text-xl font-semibold">App Store</div>
-              </div>
-            </motion.a>
-            
-            <motion.a
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              href="#"
-              className="flex items-center bg-black text-white px-8 py-4 rounded-xl hover:bg-gray-900 transition duration-300 transform hover:scale-105"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM5.94 5.5c.944-.945 2.56-.276 2.56 1.06V10l5.5-5.5a1 1 0 011.42 1.4L10.01 11.3 15.5 16a1 1 0 01-1.41 1.41l-5.5-5.5v3.5c0 1.336-1.616 2.005-2.56 1.06l-4-4a1.5 1.5 0 010-2.12l4-4z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <div className="text-xs">GET IT ON</div>
-                <div className="text-xl font-semibold">Google Play</div>
-              </div>
-            </motion.a>
-          </div>
         </div>
       </section>
     </div>

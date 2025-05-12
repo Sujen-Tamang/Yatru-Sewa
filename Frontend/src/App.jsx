@@ -46,6 +46,7 @@ import AdminProtectedRoute from "./components/admin/AdminProtectedRoute"
 import ProtectedRoute from "./components/ProtectedRoute"
 import NotFound from "./pages/NotFound"
 import Unauthorized from "./pages/Unauthorized"
+import PaymentPage from "./pages/customer/Payment.jsx";
 
 function App() {
   useEffect(() => {
@@ -75,6 +76,8 @@ function App() {
               <Route path="/customer/bookings" element={<CustomerBookings />} />
               <Route path="/customer/bookings/:id" element={<CustomerBookingDetails />} />
               <Route path="/customer/change-password" element={<ChangePassword />} />
+              {/* Add the payment route as a protected route */}
+              <Route path="/payment" element={<PaymentPage/>} />
             </Route>
 
             {/* Admin Routes */}

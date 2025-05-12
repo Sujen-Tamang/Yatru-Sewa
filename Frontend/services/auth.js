@@ -8,20 +8,26 @@ export const login = async (logindata) => {
     });
 
     const { token, user } = response.data;
-    const userRole = user.role;
-    console.log(response.data)
+    console.log("Backend response:", response.data); // Debug log
 
+    // Create complete user object with ALL fields from backend
     const userData = {
+      id: user._id || user.id, // Handle both _id and id
       name: user.name,
       email: user.email,
       phone: user.phone,
-      id: user.id,
-      token: token, // Store token in user object for easy access
+      role: user.role,
+      isVerified: user.isVerified, // CRUCIAL - Add verification status
+      token: token,
+      // Include any other fields you need
     };
 
+    // Store data
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(userData));
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    console.log("Frontend user data:", userData); // Debug log
 
     return {
       success: true,
@@ -91,96 +97,45 @@ export const requestVerification = async (email) => {
 // Verify email with code
 export const verifyEmail = async (email, verificationCode) => {
   try {
-    // Convert verificationCode to a number since backend expects a number
-    const numericOtp = Number(verificationCode);
-    
-    console.log('Sending verification request with:', { 
-      email, 
-      otp: numericOtp,
-      originalOtp: verificationCode
-    });
-    
-    const response = await api.post("auth/verify-otp", {
-      email,
-      otp: numericOtp // Convert to number as the backend compares with Number(otp)
-    });
-    
-    console.log('Verification response:', response.data);
-    
-    // Update user data in localStorage if verification successful
+    const response = await api.post(
+        "auth/verify-otp",
+        { email, otp: Number(verificationCode) },
+        { withCredentials: true }
+    );
+
     if (response.data.success) {
-      const userData = JSON.parse(localStorage.getItem("user"));
-      if (userData) {
-        userData.isVerified = true;
-        localStorage.setItem("user", JSON.stringify(userData));
-      }
+      const { token, user } = response.data;
+
+      // Create complete verified user object
+      const verifiedUser = {
+        ...user,
+        token,
+        isVerified: true
+      };
+
+      // Update storage and headers
+      localStorage.setItem("user", JSON.stringify(verifiedUser));
+      localStorage.setItem("token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      return {
+        success: true,
+        token,
+        user: verifiedUser,
+        message: response.data.message
+      };
     }
-    
-    return {
-      success: true,
-      message: response.data.message || "Email verified successfully",
-      data: response.data
-    };
-  } catch (error) {
-    console.error("Email verification failed:", error);
-    console.error("Response data:", error.response?.data);
-    
+
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to verify email",
-      error: error.message
+      message: response.data.message || "Verification failed"
     };
-  }
-};
 
-/**
- * Request password reset token
- * @param {string} email - User's email address
- * @returns {Promise<Object>} - Response with success status and message
- */
-export const forgotPassword = async (email) => {
-  try {
-    const response = await api.post("auth/forgot-password", { email });
-    
-    console.log('Forgot password response:', response.data);
-    
-    return {
-      success: true,
-      message: response.data.message || "Password reset instructions sent to your email"
-    };
   } catch (error) {
-    console.error("Forgot password request failed:", error.response?.data || error.message);
-    return { 
-      success: false, 
-      message: error.response?.data?.message || "Failed to request password reset. Please try again." 
-    };
-  }
-};
-
-export const resetPassword = async (passwordData, token) => {
-  try {
-    if (passwordData.password !== passwordData.confirmPassword) {
-      return { success: false, message: "Passwords do not match" };
-    }
-    
-    // Call the reset password API endpoint
-    const response = await api.put(`auth/reset-password/${token}`, {
-      password: passwordData.password,
-      confirmPassword: passwordData.confirmPassword
-    });
-    
-    console.log('Reset password response:', response.data);
-    
+    console.error("Verification error:", error.response?.data || error.message);
     return {
-      success: true,
-      message: "Password reset successfully",
-      data: response.data
-    };
-  } catch (error) {
-    console.error("Password reset failed:", error.response?.data || error.message);
-    return { 
-      success: false, 
-      message: error.response?.data?.message || "Failed to reset password. Please try again." 
+      success: false,
+      message: error.response?.data?.message || "Verification failed. Please try again."
     };
   }
 };

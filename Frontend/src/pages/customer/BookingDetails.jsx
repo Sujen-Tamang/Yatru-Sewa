@@ -190,13 +190,10 @@ const BookingDetails = () => {
   };
 
   // Handle proceed to payment
-  const handleProceedToPayment = () => {
-    console.log("done till here!");
-    
-    // Check if user is authenticated
+  const handleProceedToPayment = async () => {
+    // 1. First check authentication
     if (!isAuthenticated) {
       toast.error("Please sign in to proceed with payment");
-      // Save booking details to session storage before redirecting
       sessionStorage.setItem('pendingBooking', JSON.stringify({
         busData,
         journeyDate,
@@ -207,11 +204,24 @@ const BookingDetails = () => {
       navigate('/auth/signin', { state: { from: location.pathname } });
       return;
     }
-    
-    // Check if user's account is verified
-    if (!currentUser?.isVerified) {
+
+    // 2. Add a check to ensure currentUser is loaded
+    if (!currentUser) {
+      toast.error("User data is loading, please wait...");
+      return;
+    }
+
+    // 3. Debug logging to check verification status
+    console.log('Current user verification status:', currentUser.isVerified);
+    console.log('Full currentUser object:', currentUser);
+
+    // 4. Improved verification check
+    const isUserVerified = currentUser?.isVerified ||
+        currentUser?.verified ||
+        currentUser?.user?.isVerified;
+
+    if (!isUserVerified) {
       toast.error("Your account needs to be verified before making a payment");
-      // Save booking details to session storage
       sessionStorage.setItem('pendingBooking', JSON.stringify({
         busData,
         journeyDate,
@@ -219,21 +229,25 @@ const BookingDetails = () => {
         payment,
         totalPrice
       }));
-      // Redirect to verification page
       navigate('/auth/verify', { state: { from: location.pathname } });
       return;
     }
 
-    // If authenticated and verified, proceed to payment page
-    navigate('/payment', {
-      state: {
-        busData,
-        journeyDate,
-        selectedSeats,
-        paymentMethod: payment,
-        amount: totalPrice
-      }
-    });
+    // 5. Proceed with payment
+    const bookingData = {
+      bus: busData,
+      journeyDate,
+      selectedSeats,
+      totalAmount: totalPrice,
+      paymentMethod: payment,
+      passengerInfo: form
+    };
+
+    if (payment === "Khalti") {
+      navigate('/payment', { state: { booking: bookingData } });
+    } else {
+      toast.error("Selected payment method is not available yet");
+    }
   };
 
   const ticketPrice = busData?.price || (busData?.data?.price) || 700;

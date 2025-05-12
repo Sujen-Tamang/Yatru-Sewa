@@ -30,12 +30,12 @@ const busSchema = new mongoose.Schema({
         from: { type: String, required: true },
         to: { type: String, required: true },
         stops: [{ type: String }],
-        distance: { type: Number, required: true }, // km
-        duration: { type: Number, required: true } // hours
+        distance: { type: Number, required: true },
+        duration: { type: Number, required: true }
     },
     schedule: {
-        departure: { type: String, required: true }, // "HH:MM"
-        arrival: { type: String, required: true },   // "HH:MM"
+        departure: { type: String, required: true },
+        arrival: { type: String, required: true },
         frequency: {
             type: String,
             enum: ['daily', 'weekly', 'monthly'],
@@ -58,13 +58,18 @@ const busSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    currentLocation: {
+        lat: { type: Number },
+        lng: { type: Number },
+        updatedAt: { type: Date, default: Date.now }
+    },
     createdAt: {
         type: Date,
         default: Date.now
     }
 });
 
-// Generate seats before saving
+// Auto-generate seats on new bus creation
 busSchema.pre('save', function(next) {
     if (this.isNew) {
         const rows = Math.ceil(this.totalSeats / 4);

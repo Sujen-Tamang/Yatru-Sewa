@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { forgotPassword, resetPassword } from '../../../services/auth.js';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaLock, FaEye, FaEyeSlash, FaEnvelope, FaKey } from 'react-icons/fa';
 

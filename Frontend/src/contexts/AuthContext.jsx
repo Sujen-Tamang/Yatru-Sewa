@@ -1,37 +1,47 @@
 "use client"
 import axios from "axios"
-
-import { createContext, useState, useContext, useEffect } from "react"
+import { createContext, useState, useContext, useEffect, useMemo } from "react"
 import { login, logout, register, requestVerification, verifyEmail } from "../../services/auth"
 import { toast } from "react-toastify"
 
+// 1. Create context outside component
 const AuthContext = createContext(null)
 
-export const useAuth = () => useContext(AuthContext)
+// 2. Stable custom hook export
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (context === null) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
 
-export const AuthProvider = ({ children }) => {
+// 3. Main provider component with stable reference
+export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [authChecked, setAuthChecked] = useState(false)
 
-  // Check if user is already logged in on initial load
+  // Check auth status on mount
   useEffect(() => {
     const checkAuthStatus = () => {
       try {
         const user = localStorage.getItem("user")
         const token = localStorage.getItem("token")
-        
-        if (user && token) {  
-          const userData = JSON.parse(user)
 
+        if (user && token) {
+          const userData = JSON.parse(user)
           if (userData && (!userData.role || userData.role === 'user')) {
-            setCurrentUser(userData)
+            const completeUser = {
+              ...userData,
+              token // Ensure token is included
+            }
+            setCurrentUser(completeUser)
             axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
           }
         }
       } catch (error) {
-        console.error("Error checking auth status:", error)
-        // Clear potentially corrupted auth data
+        console.error("Auth check error:", error)
         localStorage.removeItem("user")
         localStorage.removeItem("token")
       } finally {
@@ -39,165 +49,164 @@ export const AuthProvider = ({ children }) => {
         setAuthChecked(true)
       }
     }
-    
+
     checkAuthStatus()
   }, [])
 
-  // Sign in function for users
   const signIn = async (email, password) => {
     try {
       setLoading(true)
       const result = await login({ email, password })
 
-      if (result.success) {
-        if (result.user && (!result.user.role || result.user.role === 'user')) {
-          setCurrentUser(result.user)
-          toast.success("Successfully logged in!")
-          return { success: true }
-        } else {
-          localStorage.removeItem("user")
-          localStorage.removeItem("token")
-          delete axios.defaults.headers.common["Authorization"]
-          return { 
-            success: false, 
-            error: "Invalid user credentials. Admin users should use the admin login." 
-          }
+      if (result.success && result.user && (!result.user.role || result.user.role === 'user')) {
+        const userWithToken = {
+          ...result.user,
+          token: result.token,
+          isVerified: result.user.isVerified // Ensure verification status
         }
-      } else {
-        toast.error(result.message || "Login failed")
-        return { success: false, error: result.message || "Login failed" }
+
+        setCurrentUser(userWithToken)
+        localStorage.setItem("user", JSON.stringify(userWithToken))
+        localStorage.setItem("token", result.token)
+        axios.defaults.headers.common["Authorization"] = `Bearer ${result.token}`
+
+        toast.success("Login successful!")
+        return { success: true, user: userWithToken }
       }
+
+      // Handle errors
+      localStorage.removeItem("user")
+      localStorage.removeItem("token")
+      delete axios.defaults.headers.common["Authorization"]
+
+      const errorMsg = result?.message || "Login failed"
+      toast.error(errorMsg)
+      return { success: false, error: errorMsg }
+
     } catch (error) {
-      toast.error("An error occurred during login")
-      return { success: false, error: "An error occurred during login" }
+      toast.error("Login error occurred")
+      return { success: false, error: error.message }
     } finally {
       setLoading(false)
     }
   }
 
-  // Sign up function for new users
   const signUp = async (userData) => {
     try {
       setLoading(true)
       const result = await register(userData)
 
       if (result.success) {
-        toast.success("Registration successful! Please verify your account.")
+        toast.success("Registration successful! Please verify.")
         return { success: true }
-      } else {
-        toast.error(result.message || "Registration failed")
-        return { success: false, error: result.message || "Registration failed" }
       }
+
+      toast.error(result.message || "Registration failed")
+      return { success: false, error: result.message }
     } catch (error) {
-      toast.error("An error occurred during registration")
-      return { success: false, error: "An error occurred during registration" }
+      toast.error("Registration error")
+      return { success: false, error: error.message }
     } finally {
       setLoading(false)
     }
   }
 
-  // Sign out function
   const signOut = async () => {
     try {
       setLoading(true)
       await logout()
       setCurrentUser(null)
-      toast.success("Successfully logged out")
-    } catch (error) {
-      console.error("Error during logout:", error)
       localStorage.removeItem("user")
       localStorage.removeItem("token")
       delete axios.defaults.headers.common["Authorization"]
-      setCurrentUser(null)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Check if user is authenticated and has specific role
-  const hasRole = (role) => {
-    if (!currentUser) return false
-    return currentUser.role === role
-  }
-
-  // Request verification code for user
-  const requestUserVerification = async () => {
-    if (!currentUser || !currentUser.email) {
-      toast.error("You must be logged in to request verification")
-      return { success: false, error: "User not logged in" }
-    }
-
-    try {
-      setLoading(true)
-      const result = await requestVerification(currentUser.email)
-
-      if (result.success) {
-        toast.success("Verification code sent to your email")
-        return { success: true }
-      } else {
-        toast.error(result.message || "Failed to send verification code")
-        return { success: false, error: result.message }
-      }
+      toast.success("Logged out successfully")
     } catch (error) {
-      toast.error("An error occurred while requesting verification")
-      return { success: false, error: "An error occurred while requesting verification" }
+      console.error("Logout error:", error)
     } finally {
       setLoading(false)
     }
   }
 
-  // Verify user with code
   const verifyUser = async (verificationCode) => {
-    if (!currentUser || !currentUser.email) {
-      toast.error("You must be logged in to verify your account")
-      return { success: false, error: "User not logged in" }
+    if (!currentUser?.email) {
+      toast.error("Login required")
+      return { success: false, error: "Not logged in" }
     }
 
     try {
       setLoading(true)
-      console.log("Verifying user with:", {
-        email: currentUser.email,
-        verificationCode: verificationCode
-      })
-      
       const result = await verifyEmail(currentUser.email, verificationCode)
-      console.log("Verification API response:", result)
 
       if (result.success) {
-        // Update the current user with verified status
-        setCurrentUser(prev => ({ ...prev, isVerified: true }))
-        toast.success("Your account has been verified!")
+        const updatedUser = {
+          ...currentUser,
+          isVerified: true,
+          token: result.token || currentUser.token
+        }
+
+        setCurrentUser(updatedUser)
+        localStorage.setItem("user", JSON.stringify(updatedUser))
+        if (result.token) {
+          localStorage.setItem("token", result.token)
+          axios.defaults.headers.common["Authorization"] = `Bearer ${result.token}`
+        }
+
+        toast.success("Account verified!")
         return { success: true }
-      } else {
-        console.error("Verification failed:", result.message || "Unknown error")
-        toast.error(result.message || "Verification failed")
-        return { success: false, error: result.message }
       }
+
+      toast.error(result.message || "Verification failed")
+      return { success: false, error: result.message }
+
     } catch (error) {
-      console.error("Verification error:", error)
-      toast.error(error.message || "An error occurred during verification")
-      return { success: false, error: error.message || "An error occurred during verification" }
+      toast.error("Verification error")
+      return { success: false, error: error.message }
     } finally {
       setLoading(false)
     }
   }
 
-  const value = {
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
     currentUser,
     isAuthenticated: !!currentUser,
+    isVerified: currentUser?.isVerified || false,
+    loading,
+    authChecked,
     signIn,
     signUp,
     signOut,
-    hasRole,
-    loading,
-    authChecked,
-    requestUserVerification,
-    verifyUser
-  }
+    verifyUser,
+    requestUserVerification: async () => {
+      if (!currentUser?.email) {
+        toast.error("Login required")
+        return { success: false }
+      }
+      try {
+        setLoading(true)
+        const result = await requestVerification(currentUser.email)
+        if (result.success) {
+          toast.success("Verification code sent")
+          return { success: true }
+        }
+        toast.error(result.message || "Request failed")
+        return { success: false, error: result.message }
+      } catch (error) {
+        toast.error("Request error")
+        return { success: false, error: error.message }
+      } finally {
+        setLoading(false)
+      }
+    },
+    hasRole: (role) => currentUser?.role === role
+  }), [currentUser, loading, authChecked])
 
   return (
-    <AuthContext.Provider value={value}>
-      {(!loading || authChecked) && children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={contextValue}>
+        {(!loading || authChecked) && children}
+      </AuthContext.Provider>
   )
 }
+
+// Add display name for debugging
+AuthContext.displayName = "AuthContext"

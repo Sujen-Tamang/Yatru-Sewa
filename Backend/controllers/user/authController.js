@@ -135,7 +135,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
     const { email, otp } = req.body;
 
     // 1. Input validation
-    if (!email ||  !otp) {
+    if (!email || !otp) {
         return next(new AppError("Email and OTP are required", 400));
     }
 
@@ -148,15 +148,6 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
             .select('+verificationCode +verificationCodeExpire +isVerified')
             .session(session);
 
-        console.log('Pre-verification state:', {
-            email,
-            userId: user?._id,
-            isVerified: user?.isVerified,
-            verificationCode: user?.verificationCode,
-            codeExpires: user?.verificationCodeExpire,
-            currentTime: new Date()
-        });
-
         // 3. Validation checks
         if (!user) {
             return next(new AppError("No account found with this email", 404));
@@ -164,10 +155,7 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
         if (user.isVerified) {
             return next(new AppError("Account is already verified", 400));
         }
-        if (!user.verificationCode) {
-            return next(new AppError("No active verification code found", 400));
-        }
-        if (user.verificationCode !== Number(otp)) {
+        if (!user.verificationCode || user.verificationCode !== Number(otp)) {
             return next(new AppError("Invalid verification code", 400));
         }
         if (Date.now() > user.verificationCodeExpire) {
@@ -189,56 +177,49 @@ export const verifyOTP = catchAsyncError(async (req, res, next) => {
                 runValidators: true,
                 session
             }
-        ).lean();
+        );
 
-        console.log('Immediate update result:', updatedUser);
-
-        // 5. Verify the update from database directly
-        const dbUser = await User.findById(user._id).session(session).lean();
-        console.log('Database state post-update:', {
-            isVerified: dbUser.isVerified,
-            verificationCode: dbUser.verificationCode,
-            verificationCodeExpire: dbUser.verificationCodeExpire
-        });
-
-        if (!dbUser.isVerified) {
-            throw new Error('Verification status not persisted');
-        }
-
-        // 6. Generate JWT token
+        // 5. Generate new JWT token with verification status
         const token = jwt.sign(
-            { id: dbUser._id, role: dbUser.role },
+            {
+                id: updatedUser._id,
+                role: updatedUser.role,
+                isVerified: true // Critical for frontend
+            },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRE || '1d' }
         );
 
         await session.commitTransaction();
 
-        // 7. Respond with success
+        // 6. Prepare response data
+        const userData = {
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            role: updatedUser.role,
+            isVerified: updatedUser.isVerified,
+            createdAt: updatedUser.createdAt
+        };
+
+        // 7. Send response
         res.status(200).json({
             success: true,
             message: "Account verified successfully",
             token,
-            user: {
-                id: dbUser._id,
-                name: dbUser.name,
-                email: dbUser.email,
-                role: dbUser.role,
-                isVerified: dbUser.isVerified
-            }
+            user: userData
         });
 
     } catch (error) {
         await session.abortTransaction();
-        console.error('Verification failed:', {
-            error: error.message,
-            stack: error.stack
-        });
-        return next(new AppError("Failed to verify account", 500));
+        console.error('Verification error:', error);
+        return next(new AppError("Verification failed. Please try again.", 500));
     } finally {
         session.endSession();
     }
 });
+
 
 // User Login
 export const login = catchAsyncError(async (req, res, next) => {
@@ -250,12 +231,11 @@ export const login = catchAsyncError(async (req, res, next) => {
     }
 
     // 2. Find user (with password field)
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password +isVerified'); // Explicitly include isVerified
 
     if (!user) {
         return next(new AppError("Account not found", 401));
     }
-
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -264,19 +244,28 @@ export const login = catchAsyncError(async (req, res, next) => {
 
     // 5. Generate token
     const token = jwt.sign(
-        { id: user._id, role: user.role },
+        { id: user._id, role: user.role, isVerified: user.isVerified },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRE || '1d' }
     );
 
-    // 6. Remove password from output
-    user.password = undefined;
+    // 6. Create clean user object for response
+    const userResponse = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        isVerified: user.isVerified, // Explicitly include
+        createdAt: user.createdAt,
+        // Add any other fields you need
+    };
 
     // 7. Send response
     res.status(200).json({
         success: true,
         token,
-        user
+        user: userResponse // Use the clean response object
     });
 });
 // User Logout

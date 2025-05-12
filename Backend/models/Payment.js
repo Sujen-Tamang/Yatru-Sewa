@@ -26,7 +26,7 @@ const paymentSchema = new mongoose.Schema({ user: {
     },
     payment_method: {
         type: String,
-        enum: ['khalti', 'COA'],
+        enum: ['khalti','esewa'],
         required: true
     },
     transaction_id: String, // Khalti transaction ID

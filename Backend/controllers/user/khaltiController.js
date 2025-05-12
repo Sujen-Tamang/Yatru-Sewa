@@ -14,6 +14,8 @@ export const initiateKhaltiPayment = catchAsyncError(async (req, res, next) => {
         user: userId,
         status: 'Pending'
     });
+    
+    console.log(booking);
 
     if (!booking) {
         return next(new AppError('Invalid or expired booking', 400));
@@ -33,11 +35,13 @@ export const initiateKhaltiPayment = catchAsyncError(async (req, res, next) => {
             phone: req.user.phone
         }
     };
+    
+    console.log(payload);
 
     try {
         // 4. Initiate payment with Khalti
         const response = await axios.post(
-            'https://khalti.com/api/v2/epayment/initiate/',
+            'https://dev.khalti.com/api/v2/epayment/initiate/',
             payload,
             {
                 headers: {
@@ -57,6 +61,9 @@ export const initiateKhaltiPayment = catchAsyncError(async (req, res, next) => {
             status: 'initiated',
             transaction_id: null // Will be updated after verification
         });
+
+        console.log(payment)
+
 
         // 6. Return payment URL to frontend
         res.status(200).json({
@@ -84,42 +91,51 @@ export const verifyKhaltiPayment = catchAsyncError(async (req, res, next) => {
     const { pidx, transaction_id, amount } = req.body;
     const bookingId = req.query.booking;
 
-    // 1. Verify with Khalti
-    const verification = await axios.post(
-        'https://khalti.com/api/v2/epayment/lookup/',
-        { pidx },
-        {
-            headers: {
-                'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`
+    // Verify with Khalti
+    let verification;
+    try {
+        verification = await axios.post(
+            'https://dev.khalti.com/api/v2/epayment/lookup/',
+            { pidx },
+            {
+                headers: {
+                    'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`
+                }
             }
-        }
-    );
+        );
+    } catch (err) {
+        return res.status(400).json({
+            success: false,
+            message: 'Khalti verification failed',
+            error: err.response?.data || err.message
+        });
+    }
 
     if (verification.data.status !== 'Completed') {
         return res.status(400).json({
             success: false,
-            message: 'Payment verification failed'
+            message: 'Payment not completed',
+            verification: verification.data
         });
     }
 
-    // 2. Update payment record
+    // Update payment record
     const payment = await Payment.findOneAndUpdate(
         { pidx },
         {
             status: 'completed',
             transaction_id,
-            amount: amount / 100 // Convert back to NPR
+            amount: amount / 100
         },
         { new: true }
     );
 
-    // 3. Return success - frontend should now call confirmBooking
     res.status(200).json({
         success: true,
         message: 'Payment verified successfully',
         data: {
-            paymentId: payment._id,
-            bookingId: bookingId
+            paymentId: payment?._id,
+            bookingId
         }
     });
 });

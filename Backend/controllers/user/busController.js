@@ -93,3 +93,27 @@ export const getBusWithSeats = catchAsyncError(async (req, res, next) => {
         data: response
     });
 });
+
+
+export const updateBusLocation = async (req, res) => {
+    const { lat, lng } = req.body;
+    const { id } = req.params;
+
+    try {
+        const updatedBus = await Bus.findByIdAndUpdate(
+            id,
+            {
+                $set: {
+                    currentLocation: { lat, lng, updatedAt: new Date() }
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedBus) return res.status(404).json({ message: 'Bus not found' });
+
+        res.json({ success: true, data: updatedBus });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error updating location', error: err.message });
+    }
+};
