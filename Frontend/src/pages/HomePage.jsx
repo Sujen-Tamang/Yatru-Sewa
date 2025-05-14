@@ -195,67 +195,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Popular Routes Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Popular Routes</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Discover our most popular bus routes with competitive prices and frequent departures.</p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Kathmandu to Pokhara",
-                duration: "4h 30m",
-                price: "RS. 2500",
-                image: "/route1.jpg"
-              },
-              {
-                title: "Pokhara to  Chitwan",
-                duration: "8h 15m",
-                price: "Rs. 2000",
-                image: "/route2.jpg"
-              },
-              {
-                title: "Butwal to Kathmandu",
-                duration: "2h 45m",
-                price: "Rs. 3000",
-                image: "/route3.jpg"
-              }
-            ].map((route, index) => (
-              <motion.div
-                key={route.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-              >
-                <div className="h-48 bg-gray-200 relative overflow-hidden">
-                  <img src={route.image || "/placeholder.svg"} alt={route.title} className="w-full h-full object-cover transform hover:scale-110 transition duration-500" />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{route.title}</h3>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-gray-600">{route.duration}</span>
-                    <span className="text-blue-600 font-semibold"> {route.price}</span>
-                  </div>
-                  <Link to="#" className="block text-center bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105">
-                    View Schedule
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-blue-600 to-indigo-700 text-white relative overflow-hidden">

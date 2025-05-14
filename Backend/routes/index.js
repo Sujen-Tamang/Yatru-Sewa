@@ -8,6 +8,7 @@ import userBusRoutes from './user/busRoutes.js';
 import { isAuthenticated } from '../middlewares/authMiddleware.js';
 import { isAdmin } from '../middlewares/adminMiddleware.js';
 import paymentRoutes from "./user/paymentRoutes.js";
+import adminDashboardRoutes from "./admin/adminDashboardRoutes.js";
 
 const router = express.Router();
 
@@ -28,6 +29,8 @@ router.use('/buses', userBusRoutes);
 router.use('/bookings', isAuthenticated, userBookingRoutes);
 
 // 4. Admin Routes
+router.use('/admin/dashboard', adminDashboardRoutes); // Dashboard routes
+
 router.use('/admin/bookings', isAuthenticated, isAdmin, adminBookingRoutes);
 router.use('/admin/buses', isAuthenticated, isAdmin, adminBusRoutes);
 router.use('/admin/users', isAuthenticated, isAdmin, adminUserRoutes);

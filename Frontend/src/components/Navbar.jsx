@@ -31,10 +31,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold mr-2">
-                BT
-              </div>
-              <span className="text-xl font-bold text-gray-900">BusTracker</span>
+              <img src="/assets/logo.svg" alt="YatruSewa" className="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold mr-2" />
             </div>
           </div>
         </div>
@@ -48,10 +45,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center text-white font-bold mr-2">
-                BT
-              </div>
-              <span className="text-xl font-bold text-gray-900">BusTracker</span>
+              <img src="/assets/logo.svg" alt="YatruSewa" className="h-34 w-34  rounded-md flex items-center justify-center text-white font-bold mr-2" />
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link to="/" className={`inline-flex items-center px-1 pt-1 border-b-2 ${location.pathname === '/' ? 'border-blue-500' : 'border-transparent'} ${isActive('/')}`}>

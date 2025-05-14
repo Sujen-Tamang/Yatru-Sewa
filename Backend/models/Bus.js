@@ -26,6 +26,11 @@ const busSchema = new mongoose.Schema({
         unique: true,
         uppercase: true
     },
+    yatayatName: {
+        type: String,
+        required: true,
+        trim: true
+    },
     route: {
         from: { type: String, required: true },
         to: { type: String, required: true },
@@ -68,6 +73,7 @@ const busSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
 
 // Auto-generate seats on new bus creation
 busSchema.pre('save', function(next) {

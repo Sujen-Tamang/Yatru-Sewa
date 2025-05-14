@@ -38,12 +38,13 @@ export const getAvailableBuses = catchAsyncError(async (req, res, next) => {
         count: buses.length,
         data: buses.map(bus => ({
             id: bus._id,
+            yatayatName: bus.yatayatName,
             busNumber: bus.busNumber,
             route: bus.route,
             schedule: bus.schedule,
             availableSeats: bus.seats.filter(s => !s.isBooked).length,
             price: bus.price,
-            amenities: bus.amenities // Added if available
+            amenities: bus.amenities
         }))
     });
 });
@@ -70,6 +71,7 @@ export const getBusWithSeats = catchAsyncError(async (req, res, next) => {
     // Format response
     const response = {
         id: bus._id,
+        yatayatName: bus.yatayatName,
         busNumber: bus.busNumber,
         route: bus.route,
         schedule: bus.schedule,
@@ -79,8 +81,7 @@ export const getBusWithSeats = catchAsyncError(async (req, res, next) => {
         seats: bus.seats.map(seat => ({
             number: seat.number,
             available: !seat.isBooked,
-            features: seat.features || [], // Added if available
-            // Only show bookedBy to admin
+            features: seat.features || [],
             ...(req.user?.role === 'admin' && {
                 bookedBy: seat.bookedBy,
                 bookingDate: seat.bookingDate

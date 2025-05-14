@@ -23,8 +23,8 @@ const AdminLogin = () => {
       console.log("result");
       const result = await adminSignIn(email, password);
       console.log("result", result);
-      if (result.success) {
-        navigate("/");
+      if (result.success ) {
+        navigate("/admin/dashboard");
       } else {
         setError(result.error || "Invalid email or password");
       }

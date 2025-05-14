@@ -10,6 +10,7 @@ const ManageBuses = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     busNumber: "",
+    yatayatName: "", // Added yatayatName field
     route: {
       from: "",
       to: "",
@@ -77,6 +78,7 @@ const ManageBuses = () => {
   const handleAddBus = () => {
     setFormData({
       busNumber: "",
+      yatayatName: "", // Initialize yatayatName
       route: {
         from: "",
         to: "",
@@ -99,12 +101,13 @@ const ManageBuses = () => {
   const handleEditBus = (bus) => {
     setFormData({
       busNumber: bus.busNumber,
+      yatayatName: bus.yatayatName || "", // Handle yatayatName for editing
       route: { ...bus.route },
       schedule: { ...bus.schedule },
       totalSeats: bus.totalSeats,
       price: bus.price,
     });
-    setCurrentBusId(bus._id); // Using _id as unique identifier from MongoDB
+    setCurrentBusId(bus._id);
     setIsEditing(true);
     setIsModalOpen(true);
   };
@@ -116,7 +119,6 @@ const ManageBuses = () => {
         const response = await deleteBus(busId);
         if (response.success) {
           toast.success('Bus deleted successfully');
-          // Remove the deleted bus from the state
           setBuses(buses.filter((bus) => bus._id !== busId));
         } else {
           toast.error(response.message || 'Failed to delete bus');
@@ -137,6 +139,7 @@ const ManageBuses = () => {
     // Prepare the bus data
     const busData = {
       busNumber: formData.busNumber,
+      yatayatName: formData.yatayatName, // Include yatayatName in bus data
       route: {
         from: formData.route.from,
         to: formData.route.to,
@@ -159,7 +162,6 @@ const ManageBuses = () => {
         const response = await updateBus(currentBusId, busData);
         if (response.success) {
           toast.success('Bus updated successfully');
-          // Update the buses state with the updated bus
           setBuses(buses.map(bus => bus._id === currentBusId ? response.data.data : bus));
         } else {
           toast.error(response.message || 'Failed to update bus');
@@ -169,7 +171,6 @@ const ManageBuses = () => {
         const response = await createBus(busData);
         if (response.success) {
           toast.success('Bus added successfully');
-          // Add the new bus to the buses state
           setBuses([...buses, response.data.data]);
         } else {
           toast.error(response.message || 'Failed to add bus');
@@ -188,6 +189,7 @@ const ManageBuses = () => {
   const filteredBuses = buses.filter((bus) => {
     const matchesSearch =
         bus.busNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (bus.yatayatName && bus.yatayatName.toLowerCase().includes(searchTerm.toLowerCase())) || // Include yatayatName in search
         bus.route.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
         bus.route.to.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -309,6 +311,12 @@ const ManageBuses = () => {
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
+                  Yatayat Name
+                </th>
+                <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Route From
                 </th>
                 <th
@@ -361,7 +369,7 @@ const ManageBuses = () => {
                 </th>
                 <th
                     scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-right text-x font-medium text-gray-500 uppercase tracking-wider"
                 >
                   Actions
                 </th>
@@ -373,6 +381,7 @@ const ManageBuses = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {bus.busNumber}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bus.yatayatName || '-'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bus.route.from}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bus.route.to}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{bus.route.distance}</td>
@@ -407,7 +416,7 @@ const ManageBuses = () => {
 
               {filteredBuses.length === 0 && (
                   <tr>
-                    <td colSpan="11" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="12" className="px-6 py-4 text-center text-sm text-gray-500">
                       No buses found matching your criteria.
                     </td>
                   </tr>
@@ -451,6 +460,23 @@ const ManageBuses = () => {
                                     placeholder="e.g. BS-4444"
                                     className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                     value={formData.busNumber}
+                                    onChange={handleInputChange}
+                                />
+                              </div>
+                            </div>
+
+                            <div className="sm:col-span-6">
+                              <label htmlFor="yatayatName" className="block text-sm font-medium text-gray-700">
+                                Yatayat Name
+                              </label>
+                              <div className="mt-1">
+                                <input
+                                    type="text"
+                                    name="yatayatName"
+                                    id="yatayatName"
+                                    placeholder="e.g. City Express"
+                                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    value={formData.yatayatName}
                                     onChange={handleInputChange}
                                 />
                               </div>
