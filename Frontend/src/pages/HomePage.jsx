@@ -1,136 +1,230 @@
+"use client"
+
 import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import { motion } from "framer-motion"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { format } from "date-fns"
+import { CalendarIcon, MapPinIcon, ArrowRightIcon } from 'lucide-react'
+import { cn } from "@/lib/utils"
 
-const allLocations = ["Kathmandu", "Pokhara", "Chitwan", "Butwal", "Biratnagar", "Dharan", "Birgunj", "Nepalgunj"];
+const allLocations = ["Kathmandu", "Pokhara", "Chitwan", "Butwal", "Biratnagar", "Dharan", "Birgunj", "Nepalgunj"]
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [date, setDate] = useState("");
+  const navigate = useNavigate()
+  const [from, setFrom] = useState("")
+  const [to, setTo] = useState("")
+  const [date, setDate] = useState(new Date())
 
   const handleSearch = (e) => {
-    e.preventDefault();
-    if (!from || !to || !date) return;
-    navigate(`/BusBookingPage?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(date)}`);
-  };
+    e.preventDefault()
+    if (!from || !to || !date) return
+    
+    const formattedDate = format(date, "yyyy-MM-dd")
+    navigate(
+      `/bus-booking?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${encodeURIComponent(formattedDate)}`,
+    )
+  }
 
-  const availableFrom = to ? allLocations.filter((loc) => loc !== to) : allLocations;
-  const availableTo = from ? allLocations.filter((loc) => loc !== from) : allLocations;
+  const availableFrom = to ? allLocations.filter((loc) => loc !== to) : allLocations
+  const availableTo = from ? allLocations.filter((loc) => loc !== from) : allLocations
 
   return (
     <div className="overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
+      {/* Search Section - Styled to match the image */}
+      <section className="relative bg-gradient-to-r from-blue-600 to-indigo-700 pt-24 pb-48 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 relative z-10">
+        
+        {/* Background decorative elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl opacity-20"></div>
+        <div className="absolute bottom-10 right-10 w-80 h-80 bg-indigo-500 rounded-full filter blur-3xl opacity-20"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Find Your Perfect Bus Route</h1>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Search, compare, and book bus tickets online with ease.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden"
+          >
+            <form className="p-8" onSubmit={handleSearch}>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="md:col-span-1">
+                  <label htmlFor="from" className="block text-sm font-medium text-gray-700 mb-2">
+                    From
+                  </label>
+                  <div className="relative">
+                    <MapPinIcon className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                    <select
+                      id="from"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select departure
+                      </option>
+                      {availableFrom.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="md:col-span-1">
+                  <label htmlFor="to" className="block text-sm font-medium text-gray-700 mb-2">
+                    To
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-3.5 flex items-center">
+                      <MapPinIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <select
+                      id="to"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select destination
+                      </option>
+                      {availableTo.map((loc) => (
+                        <option key={loc} value={loc}>
+                          {loc}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="md:col-span-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full pl-3 pr-4 py-6 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 font-normal justify-start text-left",
+                          !date && "text-gray-500"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-5 w-5 text-gray-400" />
+                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div className="md:col-span-1 flex items-end">
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-6 px-6 rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Search Buses
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+
+        {/* Wave divider */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1440 320"
+            className="w-full h-auto"
+            preserveAspectRatio="none"
+          >
+            <path
+              fill="#ffffff"
+              fillOpacity="1"
+              d="M0,160L48,144C96,128,192,96,288,90.7C384,85,480,107,576,122.7C672,139,768,149,864,144C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            ></path>
+          </svg>
+        </div>
+      </section>
+
+      {/* Hero Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Travel with <span className="text-yellow-400">Comfort</span> and <span className="text-yellow-400">Convenience</span>
-              </h1>
-              <p className="text-xl mb-8 text-blue-100">Book bus tickets online, track your bus in real-time, and enjoy a hassle-free journey with BusTracker.</p>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight text-gray-900">
+                Travel with <span className="text-blue-600">Comfort</span> and{" "}
+                <span className="text-blue-600">Convenience</span>
+              </h2>
+              <p className="text-xl mb-8 text-gray-600">
+                Book bus tickets online, track your bus in real-time, and enjoy a hassle-free journey with BusTracker.
+              </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Link to="/signup" className="bg-white text-blue-600 px-8 py-4 rounded-xl font-medium hover:bg-blue-50 transition duration-300 text-center transform hover:scale-105">
+                <Link
+                  to="/signup"
+                  className="bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:bg-blue-700 transition duration-300 text-center transform hover:scale-105"
+                >
                   Get Started
                 </Link>
-                <Link to="#how-it-works" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-medium hover:bg-white/10 transition duration-300 text-center">
+                <Link
+                  to="#how-it-works"
+                  className="bg-gray-100 text-gray-800 px-8 py-4 rounded-xl font-medium hover:bg-gray-200 transition duration-300 text-center"
+                >
                   Learn More
                 </Link>
               </div>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="hidden md:block"
             >
+              <img
+                src="/bus-hero.jpg"
+                alt="Bus travel illustration"
+                className="rounded-2xl shadow-2xl transform hover:scale-105 transition duration-500"
+              />
             </motion.div>
           </div>
         </div>
-        
-        {/* Wave divider - Adjusted to be at the level of the card */}
-        <div className="absolute bottom-0 left-0 right-0" style={{ bottom: "-190px" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto" preserveAspectRatio="none">
-            <path fill="#ffffff" fillOpacity="1" d="M0,160L48,144C96,128,192,96,288,90.7C384,85,480,107,576,122.7C672,139,768,149,864,144C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
-        </div>
       </section>
 
-      {/* Search Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl -mt-32 relative z-20 overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-              <h2 className="text-2xl font-semibold text-center">Find Your Perfect Bus Route</h2>
-            </div>
-            <form className="p-8" onSubmit={handleSearch}>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div>
-                  <label htmlFor="from" className="block text-sm font-medium text-gray-700 mb-2">From</label>
-                  <select
-                    id="from"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    value={from}
-                    onChange={e => setFrom(e.target.value)}
-                  >
-                    <option value="" disabled>Select departure</option>
-                    {availableFrom.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="to" className="block text-sm font-medium text-gray-700 mb-2">To</label>
-                  <select
-                    id="to"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    value={to}
-                    onChange={e => setTo(e.target.value)}
-                  >
-                    {availableTo.map((loc) => (
-                      <option key={loc} value={loc}>{loc}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">Date</label>
-                  <input
-                    type="date"
-                    id="date"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Link to="/bus-booking"
-                  type="submit" 
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Search Buses
-                  </Link>
-                </div>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="how-it-works" className="py-24 bg-gradient-to-r from-blue-600 to-indigo-700 text-white relative overflow-hidden">
+      {/* Popular Routes Section */}
+      <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -139,10 +233,90 @@ const HomePage = () => {
             transition={{ duration: 0.5 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-white-900 mb-4">Why Choose BusTracker</h2>
-            <p className="text-xl text-gray-100 max-w-3xl mx-auto">We provide the best bus ticketing and tracking experience with features designed for your comfort and convenience.</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Popular Routes</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Discover our most popular bus routes with competitive prices and frequent departures.
+            </p>
           </motion.div>
-          
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Kathmandu to Pokhara",
+                duration: "4h 30m",
+                price: "RS. 2500",
+                image: "/route1.jpg",
+                from: "Kathmandu",
+                to: "Pokhara"
+              },
+              {
+                title: "Pokhara to Chitwan",
+                duration: "8h 15m",
+                price: "Rs. 2000",
+                image: "/route2.jpg",
+                from: "Pokhara",
+                to: "Chitwan"
+              },
+              {
+                title: "Butwal to Kathmandu",
+                duration: "2h 45m",
+                price: "Rs. 3000",
+                image: "/route3.jpg",
+                from: "Butwal",
+                to: "Kathmandu"
+              }
+            ].map((route, index) => (
+              <motion.div
+                key={route.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+              >
+                <div className="h-48 bg-gray-200 relative overflow-hidden">
+                  <img 
+                    src={route.image || "/placeholder.svg?height=200&width=400"} 
+                    alt={route.title} 
+                    className="w-full h-full object-cover transform hover:scale-110 transition duration-500" 
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">{route.title}</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-gray-600">{route.duration}</span>
+                    <span className="text-blue-600 font-semibold">{route.price}</span>
+                  </div>
+                  <Link 
+                    to={`/bus-booking?from=${encodeURIComponent(route.from)}&to=${encodeURIComponent(route.to)}&date=${encodeURIComponent(format(new Date(), "yyyy-MM-dd"))}`}
+                    className="block text-center bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition duration-300 transform hover:scale-105"
+                  >
+                    View Schedule
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="how-it-works" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose BusTracker</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We provide the best bus ticketing and tracking experience with features designed for your comfort and
+              convenience.
+            </p>
+          </motion.div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -152,14 +326,28 @@ const HomePage = () => {
               className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                  />
                 </svg>
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">Easy Booking</h3>
-              <p className="text-gray-600">Book your bus tickets in just a few clicks from anywhere, anytime. Our user-friendly platform makes booking a breeze.</p>
+              <p className="text-gray-600">
+                Book your bus tickets in just a few clicks from anywhere, anytime. Our user-friendly platform makes
+                booking a breeze.
+              </p>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -168,14 +356,28 @@ const HomePage = () => {
               className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                  />
                 </svg>
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">Real-time Tracking</h3>
-              <p className="text-gray-600">Track your bus location in real-time and never miss your bus again. Get accurate ETAs and journey updates.</p>
+              <p className="text-gray-600">
+                Track your bus location in real-time and never miss your bus again. Get accurate ETAs and journey
+                updates.
+              </p>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -184,18 +386,30 @@ const HomePage = () => {
               className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
                 </svg>
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">Secure Payments</h3>
-              <p className="text-gray-600">Multiple secure payment options for a worry-free booking experience. Your financial information is always protected.</p>
+              <p className="text-gray-600">
+                Multiple secure payment options for a worry-free booking experience. Your financial information is
+                always protected.
+              </p>
             </motion.div>
           </div>
         </div>
       </section>
-
-
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-blue-600 to-indigo-700 text-white relative overflow-hidden">
@@ -210,24 +424,33 @@ const HomePage = () => {
           >
             <div>
               <h2 className="text-4xl font-bold mb-6">Ready to Simplify Your Bus Travel?</h2>
-              <p className="text-xl mb-8 text-blue-100">Join thousands of satisfied customers who have made BusTracker their go-to platform for bus ticketing and tracking.</p>
+              <p className="text-xl mb-8 text-blue-100">
+                Join thousands of satisfied customers who have made BusTracker their go-to platform for bus ticketing
+                and tracking.
+              </p>
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                <Link to="/signup" className="bg-white text-blue-600 px-8 py-4 rounded-xl font-medium hover:bg-blue-50 transition duration-300 text-center transform hover:scale-105">
+                <Link
+                  to="/signup"
+                  className="bg-white text-blue-600 px-8 py-4 rounded-xl font-medium hover:bg-blue-50 transition duration-300 text-center transform hover:scale-105"
+                >
                   Get Started
                 </Link>
-                <Link to="/contact" className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-medium hover:bg-white/10 transition duration-300 text-center">
+                <Link
+                  to="/contact"
+                  className="bg-transparent border-2 border-white text-white px-8 py-4 rounded-xl font-medium hover:bg-white/10 transition duration-300 text-center"
+                >
                   Contact Us
                 </Link>
               </div>
             </div>
             <div className="hidden md:block">
-              <motion.img 
+              <motion.img
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                src="/app-preview.jpg" 
-                alt="Mobile app screenshot" 
+                src="/app-preview.jpg"
+                alt="Mobile app screenshot"
                 className="rounded-2xl shadow-2xl transform hover:scale-105 transition duration-500"
               />
             </div>

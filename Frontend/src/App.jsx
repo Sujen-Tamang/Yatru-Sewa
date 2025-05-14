@@ -76,7 +76,6 @@ function App() {
               <Route path="/customer/bookings" element={<CustomerBookings />} />
               <Route path="/customer/bookings/:id" element={<CustomerBookingDetails />} />
               <Route path="/customer/change-password" element={<ChangePassword />} />
-              {/* Add the payment route as a protected route */}
               <Route path="/payment" element={<PaymentPage/>} />
             </Route>
 
