@@ -58,7 +58,17 @@ export function AuthProvider({ children }) {
       setLoading(true)
       const result = await login({ email, password })
 
-      if (result.success && result.user && (!result.user.role || result.user.role === 'user')) {
+      if (result.success && result.user) {
+        // Check if the user is trying to access with admin credentials
+        if (result.user.role === 'admin') {
+          toast.error("Please use the admin login page for admin access")
+          return { 
+            success: false, 
+            error: "Please use the admin login page for admin access"
+          }
+        }
+        
+        // Proceed with regular user login
         const userWithToken = {
           ...result.user,
           token: result.token,

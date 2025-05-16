@@ -5,9 +5,6 @@ const AdminProtectedRoute = () => {
   const { currentAdmin, loading } = useAdminAuth();
   const location = useLocation();
 
-  console.log("This is admin: ", currentAdmin);
-  console.log(currentAdmin);
-
   if (loading) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center">
@@ -17,8 +14,9 @@ const AdminProtectedRoute = () => {
     );
   }
 
-  if (!currentAdmin) {
-    // Redirect to admin login with the current location for redirect after login
+  // Check if user is authenticated AND has admin role
+  if (!currentAdmin || currentAdmin.role !== 'admin') {
+    // Redirect unauthorized users to the admin login page
     return <Navigate to="/admin/login" state={{ from: location.pathname }} replace />;
   }
 

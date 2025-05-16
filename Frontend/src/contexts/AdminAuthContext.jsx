@@ -16,23 +16,32 @@ export const AdminAuthProvider = ({ children }) => {
   useEffect(() => {
     const admin = localStorage.getItem("user")
     const token = localStorage.getItem("token")
-    console.log("i am here!")
-    console.log(token)
-    console.log(admin)
+    
     if (admin && token) {
-      console.log("here!");
-      setCurrentAdmin(JSON.parse(admin))
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+      const userData = JSON.parse(admin)
+      
+      if (userData && userData.role === 'admin') {
+        setCurrentAdmin(userData)
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+      }
     }
     setLoading(false)
   }, [])
 
   // Admin sign in function
-    const adminSignIn = async (email, password) => {
+  const adminSignIn = async (email, password) => {
     try {
       const result = await adminLogin({ email, password })
-      console.log("result", result)
+      
       if (result.success) {
+        // Verify that the user has admin role
+        if (result.user.role !== 'admin') {
+          return { 
+            success: false, 
+            error: "Unauthorized: You don't have admin privileges" 
+          }
+        }
+        
         const adminData = {
           id: result.user._id,
           email: result.user.email,
