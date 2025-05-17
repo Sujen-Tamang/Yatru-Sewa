@@ -48,6 +48,9 @@ import NotFound from "./pages/NotFound"
 import Unauthorized from "./pages/Unauthorized"
 import PaymentPage from "./pages/customer/Payment.jsx";
 
+import UserPage from "./pages/UserPage.jsx";
+import DriverPage from "./pages/DriverPage.jsx";
+
 function App() {
   useEffect(() => {
     AOS.init({
@@ -62,6 +65,7 @@ function App() {
       <AdminAuthProvider>
         <Router>
           <Routes>
+
             {/* Auth Routes */}
             <Route element={<AuthLayout />}>
               <Route path="/auth/signin" element={<SignIn />} />
@@ -103,6 +107,9 @@ function App() {
               <Route path="/bus-booking" element={<BusBookingPage />} />
               <Route path="/customer/bookings/details" element={<CustomerBookingDetails />} />
               <Route path="/booking-confirmation/:id" element={<BookingConfirmationPage />} />
+              <Route path="/busTracking" element={<UserPage />} />
+              <Route path="/driver/:busId" element={<DriverPage />} />
+              {/*<Route path="/track/:busId" element={<BusTracking />} />*/}
             </Route>
 
             {/* Error Routes */}
