@@ -153,7 +153,7 @@ export const cancelMyBooking = catchAsyncError(async (req, res, next) => {
     const booking = await Booking.findOne({
         _id: req.params.id,
         user: req.user._id,
-        status: 'Confirmed'
+        status: { $in: ['Confirmed', 'Pending'] }
     });
 
     if (!booking) {

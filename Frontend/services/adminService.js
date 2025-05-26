@@ -4,7 +4,7 @@ import api from './api';
 // Admin Bus Management
 export const getAllBuses = async () => {
   try {
-    const response = await api.get('/v1/admin/buses');
+    const response = await api.get('admin/buses');
     return {
       success: true,
       data: response.data,
@@ -20,7 +20,7 @@ export const getAllBuses = async () => {
 
 export const createBus = async (busData) => {
   try {
-    const response = await api.post('/v1/admin/buses', busData);
+    const response = await api.post('admin/buses', busData);
     return {
       success: true,
       data: response.data,
@@ -36,7 +36,7 @@ export const createBus = async (busData) => {
 
 export const updateBus = async (busId, busData) => {
   try {
-    const response = await api.put(`/v1/admin/buses/${busId}`, busData);
+    const response = await api.put(`admin/buses/${busId}`, busData);
     return {
       success: true,
       data: response.data,
@@ -52,7 +52,7 @@ export const updateBus = async (busId, busData) => {
 
 export const deleteBus = async (busId) => {
   try {
-    const response = await api.delete(`/v1/admin/buses/${busId}`);
+    const response = await api.delete(`admin/buses/${busId}`);
     return {
       success: true,
       data: response.data,
@@ -69,7 +69,7 @@ export const deleteBus = async (busId) => {
 // Admin User Management
 export const getAllUsers = async () => {
   try {
-    const response = await api.get('/v1/admin/users');
+    const response = await api.get('admin/users');
     return {
       success: true,
       data: response.data,
@@ -135,7 +135,7 @@ export const deleteUser = async (userId) => {
 export const getDashboardStats = async () => {
   try {
     console.log('Fetching dashboard stats...');
-    const response = await api.get('dashboard/stats');
+    const response = await api.get('admin/dashboard/stats');
     console.log('Dashboard stats response:', response.data);
     return {
       success: true,
@@ -153,7 +153,7 @@ export const getDashboardStats = async () => {
 export const getRecentBookings = async () => {
   try {
     console.log('Fetching recent bookings...');
-    const response = await api.get('dashboard/bookings/recent');
+    const response = await api.get('admin/dashboard/bookings/recent');
     console.log('Recent bookings response:', response.data);
     return {
       success: true,
@@ -171,7 +171,7 @@ export const getRecentBookings = async () => {
 export const getPopularRoutes = async () => {
   try {
     console.log('Fetching popular routes...');
-    const response = await api.get('dashboard/routes/popular');
+    const response = await api.get('/admin/dashboard/routes/popular');
     console.log('Popular routes response:', response.data);
     return {
       success: true,
@@ -182,6 +182,22 @@ export const getPopularRoutes = async () => {
     return {
       success: false,
       message: error.response?.data?.message || 'Error fetching popular routes',
+    };
+  }
+};
+
+export const getAllBookings = async () => {
+  try {
+    const response = await api.get('admin/bookings');
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    console.error('Error fetching bookings:', error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Error fetching bookings',
     };
   }
 };

@@ -2,82 +2,97 @@
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
-
-// Sample data for the admin dashboard
-const dashboardData = {
-  stats: [
-    { name: "Total Users", value: "23,450", icon: "users", change: "+19%" },
-    { name: "Active Buses", value: "1,850", icon: "bus", change: "+7%" },
-    { name: "Bookings Today", value: "3,842", icon: "ticket", change: "+27%" },
-    { name: "Revenue (MTD)", value: "NPR 12,345,678", icon: "money", change: "+35%" },
-  ],
-  recentBookings: [
-    {
-      id: "BK1001",
-      user: "Amit Sharma",
-      route: "Kathmandu - Pokhara",
-      date: "2023-07-15",
-      status: "Confirmed",
-      amount: "NPR 2,500",
-    },
-    {
-      id: "BK1002",
-      user: "Sunita Gurung",
-      route: "Kathmandu - Chitwan",
-      date: "2023-07-15",
-      status: "Pending",
-      amount: "NPR 1,800",
-    },
-    {
-      id: "BK1003",
-      user: "Rajesh Yadav",
-      route: "Pokhara - Lumbini",
-      date: "2023-07-16",
-      status: "Confirmed",
-      amount: "NPR 3,200",
-    },
-    {
-      id: "BK1004",
-      user: "Sushma Rai",
-      route: "Bharatpur - Dharan",
-      date: "2023-07-16",
-      status: "Confirmed",
-      amount: "NPR 2,100",
-    },
-    {
-      id: "BK1005",
-      user: "Bikram Thapa",
-      route: "Birgunj - Kathmandu",
-      date: "2023-07-17",
-      status: "Pending",
-      amount: "NPR 2,800",
-    },
-  ],
-  popularRoutes: [
-    { route: "Kathmandu - Pokhara", bookings: 2487, revenue: "NPR 6,345,000" },
-    { route: "Pokhara - Lumbini", bookings: 1856, revenue: "NPR 4,956,000" },
-    { route: "Kathmandu - Chitwan", bookings: 1672, revenue: "NPR 3,800,000" },
-    { route: "Biratnagar - Dharan", bookings: 1329, revenue: "NPR 2,094,000" },
-  ],
-}
+import {
+  getDashboardStats,
+  getRecentBookings,
+  getPopularRoutes,
+} from "../../../services/adminService"
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [stats, setStats] = useState([])
   const [recentBookings, setRecentBookings] = useState([])
   const [popularRoutes, setPopularRoutes] = useState([])
 
   useEffect(() => {
-    // Simulate API call to fetch dashboard data
-    const fetchDashboardData = () => {
-      setTimeout(() => {
-        setStats(dashboardData.stats)
-        setRecentBookings(dashboardData.recentBookings)
-        setPopularRoutes(dashboardData.popularRoutes)
-        setLoading(false)
-      }, 1000)
-    }
+    const fetchDashboardData = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        // Fetch stats
+        const statsRes = await getDashboardStats()
+        // Fetch recent bookings
+        const bookingsRes = await getRecentBookings()
+        // Fetch popular routes
+        const routesRes = await getPopularRoutes()
 
+        // Map stats to UI format
+        if (statsRes.success) {
+          const s = statsRes.data
+          setStats([
+            {
+              name: "Total Users",
+              value: s.totalUsers?.toLocaleString() ?? "-",
+              icon: "users",
+              change: (s.totalUsersChange >= 0 ? "+" : "") + s.totalUsersChange + "%",
+            },
+            {
+              name: "Active Buses",
+              value: s.activeBuses?.toLocaleString() ?? "-",
+              icon: "bus",
+              change: (s.activeBusesChange >= 0 ? "+" : "") + s.activeBusesChange + "%",
+            },
+            {
+              name: "Bookings Today",
+              value: s.bookingsToday?.toLocaleString() ?? "-",
+              icon: "ticket",
+              change: (s.bookingsTodayChange >= 0 ? "+" : "") + s.bookingsTodayChange + "%",
+            },
+            {
+              name: "Revenue (MTD)",
+              value: `NPR ${s.revenueMTD?.toLocaleString() ?? "-"}`,
+              icon: "money",
+              change: (s.revenueMTDChange >= 0 ? "+" : "") + s.revenueMTDChange + "%",
+            },
+          ])
+        } else {
+          setStats([])
+        }
+
+        // Map bookings
+        if (bookingsRes.success) {
+          setRecentBookings(
+            bookingsRes.data.map((b) => ({
+              id: b.id,
+              customer: b.customer || '-',
+              route: b.route,
+              date: b.date,
+              status: b.status,
+              amount: `NPR ${b.amount?.toLocaleString() ?? '-'}`,
+            }))
+          )
+        } else {
+          setRecentBookings([])
+        }
+
+        // Map routes
+        if (routesRes.success) {
+          setPopularRoutes(
+            routesRes.data.map((r) => ({
+              route: r.route,
+              revenue: `NPR ${r.revenue?.toLocaleString() ?? '-'}`,
+            }))
+          )
+        } else {
+          setPopularRoutes([])
+        }
+      } catch (err) {
+        setError("Failed to load dashboard data.")
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchDashboardData()
   }, [])
 
@@ -247,7 +262,7 @@ const Dashboard = () => {
               {recentBookings.map((booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{booking.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{booking.user}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{booking.customer}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.route}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{booking.date}</td>
                   <td className="px-6 py-4 whitespace-nowrap">

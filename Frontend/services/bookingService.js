@@ -23,7 +23,6 @@ export const cancelBooking = async (bookingId) => {
   try {
     const url = `/bookings/${bookingId}/cancel`;
     console.log('Cancelling booking with URL:', url, 'and ID:', bookingId);
-    
     const response = await api.put(url);
     console.log('Cancel booking response:', response.data);
     return {

@@ -179,10 +179,7 @@ const Bookings = () => {
                       {b.status}
                     </span>
                           <div className="flex gap-2 mt-2">
-                            <button className="px-4 py-2 border border-blue-600 text-blue-700 rounded hover:bg-blue-50 text-sm flex items-center gap-1">
-                              View E-Ticket
-                            </button>
-                            {(b.status === 'Confirmed' || b.status === 'Pending') && (
+                            {(b.status === 'Confirmed' || b.status === 'confirmed' || b.status === 'Pending' || b.status === 'pending') && (
                                 <button
                                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex items-center gap-1"
                                     onClick={() => {

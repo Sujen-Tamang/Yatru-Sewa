@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { getAllBookings } from "../../../services/adminService"
 
 // Sample data for bookings based on the new structure
 const initialBookings = [
@@ -202,14 +203,53 @@ const Bookings = () => {
   const [viewBookingDetails, setViewBookingDetails] = useState(null)
 
   useEffect(() => {
-    // Simulate API call to fetch bookings
-    const fetchBookings = () => {
-      setTimeout(() => {
-        setBookings(initialBookings)
+    const fetchBookings = async () => {
+      setLoading(true)
+      try {
+        const response = await getAllBookings()
+        if (response.success && response.data && response.data.data) {
+          // Map backend data to UI structure for the table
+          const mapped = response.data.data.map((b) => ({
+            bookingId: b.bookingId || b._id || '-',
+            user: {
+              userId: b.user?._id || '-',
+              fullName: b.user?.name || b.user?.fullName || '-',
+              email: b.user?.email || '-',
+              phone: b.user?.phone || '-',
+            },
+            bus: {
+              busId: b.bus?._id || '-',
+              yatayatName: b.bus?.yatayatName || '-',
+              busNumber: b.bus?.busNumber || '-',
+              departure: b.bus?.route?.from || b.bus?.departure || '-',
+              destination: b.bus?.route?.to || b.bus?.destination || '-',
+              departureDate: b.bus?.schedule?.departureDate || b.travelDate || b.date || '-',
+              departureTime: b.bus?.schedule?.departureTime || b.bus?.departureTime || '-',
+            },
+            seat: {
+              seatNumber: Array.isArray(b.seats) ? b.seats[0] : b.seatNumber || '-',
+              seatType: b.seatType || '-',
+            },
+            payment: {
+              amountPaid: b.amount || b.totalPrice || '-',
+              currency: 'NPR',
+              paymentMethod: b.paymentMethod || '-',
+              paymentStatus: b.paymentStatus || '-',
+              transactionId: b.transactionId || '-',
+            },
+            bookingStatus: b.status || b.bookingStatus || '-',
+            bookedAt: b.createdAt || '-',
+          }))
+          setBookings(mapped)
+        } else {
+          setBookings([])
+        }
+      } catch (error) {
+        setBookings([])
+      } finally {
         setLoading(false)
-      }, 1000)
+      }
     }
-
     fetchBookings()
   }, [])
 
