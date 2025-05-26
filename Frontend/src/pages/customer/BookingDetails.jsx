@@ -13,7 +13,7 @@ const BookingDetails = () => {
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [form, setForm] = useState({ name: "", phone: "", email: "" });
+  const [passengerInfo, setPassengerInfo] = useState([]);
   const [payment, setPayment] = useState("Khalti");
   const [busData, setBusData] = useState(null);
   const [journeyDate, setJourneyDate] = useState("");
@@ -21,23 +21,20 @@ const BookingDetails = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [seatLayout, setSeatLayout] = useState({
-    rows: 6, // Default, will be updated based on API response
+    rows: 6,
     cols: 4,
     letters: ["A", "B", "C", "D"]
   });
 
   useEffect(() => {
-    // Check if we have bus data in the location state
     if (location.state && location.state.bus) {
       setBusData(location.state.bus);
       setJourneyDate(location.state.journeyDate || "");
     } else {
-      // If no data is passed, redirect back to bus booking page
       navigate("/bus-booking");
     }
   }, [location, navigate]);
 
-  // Fetch available seats when bus data and journey date are available
   useEffect(() => {
     const fetchSeats = async () => {
       if (!busData?.id) {
@@ -52,24 +49,17 @@ const BookingDetails = () => {
         console.log(`Fetching seats for bus ${busData.id}...`);
         const response = await getAvailableSeats(busData.id);
         console.log("API Response:", response);
-        console.log("Success:", response.success);
-        console.log("Seats:", response.data?.data?.seats);
 
         if (response.success && response.data) {
           if (response.data.data && response.data.data.seats) {
             console.log("Setting seat data:", response.data.data.seats);
             setSeatData(response.data.data.seats);
 
-            // Calculate the number of rows based on the seats data
             if (response.data.data.seats && response.data.data.seats.length > 0) {
-              // Extract unique row numbers
               const rowNumbers = [...new Set(response.data.data.seats.map(seat => {
                 return parseInt(seat.number.match(/^\d+/)[0]);
               }))];
-              
-              // Sort row numbers to ensure correct order
               rowNumbers.sort((a, b) => a - b);
-              
               console.log("Row numbers detected:", rowNumbers);
               setSeatLayout(prev => ({
                 ...prev,
@@ -77,7 +67,6 @@ const BookingDetails = () => {
               }));
             }
           } else {
-            // If API doesn't return seats array, use the sample data for testing
             console.log("API didn't return seats array, using fallback data");
             const fallbackSeats = [
               { number: "1A", available: true, features: [] },
@@ -121,9 +110,6 @@ const BookingDetails = () => {
       } catch (err) {
         setError(err.message || 'An error occurred while fetching seat availability');
         console.error('Error fetching seats:', err);
-
-        // Fallback to sample data in case of error
-        console.log("Error occurred, using fallback data");
         const fallbackSeats = [
           { number: "1A", available: true, features: [] },
           { number: "1B", available: true, features: [] },
@@ -167,9 +153,22 @@ const BookingDetails = () => {
     fetchSeats();
   }, [busData, journeyDate]);
 
+  // Sync passengerInfo with selectedSeats
+  useEffect(() => {
+    if (selectedSeats.length > passengerInfo.length) {
+      const newPassengers = Array(selectedSeats.length - passengerInfo.length).fill().map(() => ({
+        name: "",
+        age: "",
+        gender: ""
+      }));
+      setPassengerInfo([...passengerInfo, ...newPassengers]);
+    } else if (selectedSeats.length < passengerInfo.length) {
+      setPassengerInfo(passengerInfo.slice(0, selectedSeats.length));
+    }
+  }, [selectedSeats]);
+
   const handleSeatClick = (seatNumber) => {
     const seat = seatData.find(s => s.number === seatNumber);
-
     if (!seat || !seat.available) return;
 
     setSelectedSeats((prev) =>
@@ -181,17 +180,17 @@ const BookingDetails = () => {
     );
   };
 
-  const handleFormChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handlePassengerChange = (index, field, value) => {
+    const updatedPassengers = [...passengerInfo];
+    updatedPassengers[index][field] = value;
+    setPassengerInfo(updatedPassengers);
   };
 
   const handlePaymentChange = (e) => {
     setPayment(e.target.value);
   };
 
-  // Handle proceed to payment
   const handleProceedToPayment = async () => {
-    // 1. First check authentication
     if (!isAuthenticated) {
       toast.error("Please sign in to proceed with payment");
       sessionStorage.setItem('pendingBooking', JSON.stringify({
@@ -205,17 +204,14 @@ const BookingDetails = () => {
       return;
     }
 
-    // 2. Add a check to ensure currentUser is loaded
     if (!currentUser) {
       toast.error("User data is loading, please wait...");
       return;
     }
 
-    // 3. Debug logging to check verification status
     console.log('Current user verification status:', currentUser.isVerified);
     console.log('Full currentUser object:', currentUser);
 
-    // 4. Improved verification check
     const isUserVerified = currentUser?.isVerified ||
         currentUser?.verified ||
         currentUser?.user?.isVerified;
@@ -233,15 +229,42 @@ const BookingDetails = () => {
       return;
     }
 
-    // 5. Proceed with payment
+    // Validate passenger info
+    if (selectedSeats.length === 0) {
+      toast.error("Please select at least one seat");
+      return;
+    }
+
+    if (passengerInfo.length !== selectedSeats.length) {
+      toast.error("Please provide details for all selected seats");
+      return;
+    }
+
+    for (const [index, passenger] of passengerInfo.entries()) {
+      if (!passenger.name || !passenger.age || !['Male', 'Female', 'Other'].includes(passenger.gender)) {
+        toast.error(`Please complete details for passenger ${index + 1}`);
+        return;
+      }
+      if (isNaN(passenger.age) || passenger.age <= 0) {
+        toast.error(`Invalid age for passenger ${index + 1}`);
+        return;
+      }
+    }
+
     const bookingData = {
       bus: busData,
       journeyDate,
       selectedSeats,
       totalAmount: totalPrice,
       paymentMethod: payment,
-      passengerInfo: form
+      passengerInfo: passengerInfo.map(p => ({
+        name: p.name,
+        age: Number(p.age),
+        gender: p.gender
+      }))
     };
+
+    console.log('Navigating with booking data:', JSON.stringify(bookingData, null, 2));
 
     if (payment === "Khalti") {
       navigate('/payment', { state: { booking: bookingData } });
@@ -256,7 +279,6 @@ const BookingDetails = () => {
   return (
       <div className="min-h-screen bg-gray-50 py-10">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Main Booking Details */}
           <div className="md:col-span-2 bg-white rounded-2xl shadow-xl p-8">
             <div className="flex items-center gap-2 mb-6">
               <FaTicketAlt className="text-blue-600" />
@@ -270,7 +292,6 @@ const BookingDetails = () => {
                   <span>Door</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  {/* Seat Grid */}
                   {loading ? (
                       <div className="flex justify-center items-center p-10">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-700"></div>
@@ -287,51 +308,39 @@ const BookingDetails = () => {
                       </div>
                   ) : (
                       <div className="grid gap-4">
-                        {/* Display debug info */}
                         {seatData.length === 0 && <div className="col-span-4 text-red-500">No seat data available</div>}
-
-                        {/* Seat layout visualization */}
                         <div className="bus-layout pb-4">
-                          {/* Bus front */}
                           <div className="w-full flex justify-center mb-4">
                             <div className="bg-gray-300 rounded-t-lg w-32 h-8 flex items-center justify-center text-gray-700 font-semibold">
                               Driver's Cabin
                             </div>
                           </div>
-                          
-                          {/* Seat grid */}
                           <div className="grid grid-cols-4 gap-x-8 gap-y-2">
-                            {/* Render all seats from seatData */}
                             {seatData.map((seat) => {
                               const seatNumber = seat.number;
                               const isAvailable = seat.available;
                               const isSelected = selectedSeats.includes(seatNumber);
-
                               const row = parseInt(seatNumber.match(/^\d+/)[0]);
                               const col = seatNumber.charAt(seatNumber.length - 1);
-                              
-                              // Get column index based on letter (A=0, B=1, C=2, D=3)
                               const colIdx = seatLayout.letters.indexOf(col);
-
                               let positionClass = "";
                               if (colIdx === 2 && seatLayout.letters[colIdx-1] !== col) {
-                                positionClass = "ml-4"; // Add gap between columns B and C
+                                positionClass = "ml-4";
                               }
-                              
                               return (
-                                <button
-                                  key={seatNumber}
-                                  className={`w-10 h-10 rounded flex items-center justify-center border text-sm mb-2 relative ${positionClass}
-                                    ${!isAvailable ? "bg-red-100 text-red-400 border-red-200 cursor-not-allowed" :
-                                      isSelected ? "bg-blue-100 text-blue-700 border-blue-400" :
-                                      "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"}
-                                  `}
-                                  disabled={!isAvailable}
-                                  onClick={() => handleSeatClick(seatNumber)}
-                                >
-                                  <span className="absolute top-1 left-1 text-xs">{seatNumber}</span>
-                                  <FaUser className="text-xs" />
-                                </button>
+                                  <button
+                                      key={seatNumber}
+                                      className={`w-10 h-10 rounded flex items-center justify-center border text-sm mb-2 relative ${positionClass}
+                                ${!isAvailable ? "bg-red-100 text-red-400 border-red-200 cursor-not-allowed" :
+                                          isSelected ? "bg-blue-100 text-blue-700 border-blue-400" :
+                                              "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"}
+                              `}
+                                      disabled={!isAvailable}
+                                      onClick={() => handleSeatClick(seatNumber)}
+                                  >
+                                    <span className="absolute top-1 left-1 text-xs">{seatNumber}</span>
+                                    <FaUser className="text-xs" />
+                                  </button>
                               );
                             })}
                           </div>
@@ -346,8 +355,50 @@ const BookingDetails = () => {
                 </div>
               </div>
             </div>
-            {/* Passenger Info section removed */}
-            {/* Payment Method */}
+            <div className="mb-8">
+              <h3 className="font-semibold mb-3">Passenger Information</h3>
+              {passengerInfo.map((passenger, index) => (
+                  <div key={index} className="border rounded-lg p-4 mb-4">
+                    <h4 className="font-medium mb-2">Passenger {index + 1} (Seat: {selectedSeats[index]})</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Name</label>
+                        <input
+                            type="text"
+                            value={passenger.name}
+                            onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
+                            className="w-full border rounded p-2 text-sm"
+                            placeholder="Enter name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Age</label>
+                        <input
+                            type="number"
+                            value={passenger.age}
+                            onChange={(e) => handlePassengerChange(index, 'age', e.target.value)}
+                            className="w-full border rounded p-2 text-sm"
+                            placeholder="Enter age"
+                            min="1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">Gender</label>
+                        <select
+                            value={passenger.gender}
+                            onChange={(e) => handlePassengerChange(index, 'gender', e.target.value)}
+                            className="w-full border rounded p-2 text-sm"
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+              ))}
+            </div>
             <div className="mb-8">
               <h3 className="font-semibold mb-3">Payment Method</h3>
               <div className="flex flex-col gap-3">
@@ -372,7 +423,6 @@ const BookingDetails = () => {
                 <p className="text-yellow-600 text-center mt-2 text-sm">Please select at least one seat</p>
             )}
           </div>
-          {/* Booking Summary */}
           <div className="bg-white rounded-2xl shadow-xl p-6 h-fit">
             <div className="flex items-center gap-2 mb-4">
               <FaTicketAlt className="text-blue-600" />
@@ -386,8 +436,6 @@ const BookingDetails = () => {
               <div className="flex items-center gap-2"><FaClock className="text-blue-500" /> <span>Departure: <span className="font-semibold">{busData?.schedule?.departure || "TBD"}</span></span></div>
             </div>
             <div className="border-t my-4"></div>
-            
-            {/* Price details */}
             <div className="mb-4">
               <div className="flex justify-between items-center text-gray-700 mb-2">
                 <span>Ticket Price:</span>
@@ -398,13 +446,12 @@ const BookingDetails = () => {
                 <span className="font-semibold">{selectedSeats.length} {selectedSeats.length === 1 ? 'seat' : 'seats'}</span>
               </div>
               {selectedSeats.length > 0 && (
-                <div className="flex justify-between items-center text-gray-700 mb-2">
-                  <span>Selected Seat Numbers:</span>
-                  <span className="font-semibold">{selectedSeats.join(', ')}</span>
-                </div>
+                  <div className="flex justify-between items-center text-gray-700 mb-2">
+                    <span>Selected Seat Numbers:</span>
+                    <span className="font-semibold">{selectedSeats.join(', ')}</span>
+                  </div>
               )}
             </div>
-            
             <div className="flex items-center justify-between gap-2 text-blue-700 font-bold text-lg border-t pt-3">
               <span>Total Price:</span>
               <span><FaRupeeSign className="inline" /> NPR {totalPrice}</span>

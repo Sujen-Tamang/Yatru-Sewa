@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const socket = io('http://localhost:5000', {
+const socket = io('http://localhost:4000', {
     path: '/socket.io',
     withCredentials: true,
 });
@@ -29,7 +29,7 @@ const BusTracking = () => {
         // Fetch initial bus details
         const fetchBus = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/v1/buses/${busId}/seats`, {
+                const response = await axios.get(`http://localhost:4000/api/v1/buses/${busId}/seats`, {
                     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
                 });
                 if (response.data.success) {

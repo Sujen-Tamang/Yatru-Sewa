@@ -50,6 +50,8 @@ import PaymentPage from "./pages/customer/Payment.jsx";
 
 import UserPage from "./pages/UserPage.jsx";
 import DriverPage from "./pages/DriverPage.jsx";
+import BusTracking from "./pages/BusTracking.jsx";
+import BookingDetails from "./pages/customer/BookingDetails";
 
 function App() {
   useEffect(() => {
@@ -105,11 +107,14 @@ function App() {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/bus-booking" element={<BusBookingPage />} />
+
+              <Route path="/booking/:id" element={<BookingDetails />} />
+              {/*<Route path="/booking/status" element={<BookingStatus />} />*/}
+
               <Route path="/customer/bookings/details" element={<CustomerBookingDetails />} />
               <Route path="/booking-confirmation/:id" element={<BookingConfirmationPage />} />
               <Route path="/busTracking" element={<UserPage />} />
               <Route path="/driver/:busId" element={<DriverPage />} />
-              {/*<Route path="/track/:busId" element={<BusTracking />} />*/}
             </Route>
 
             {/* Error Routes */}

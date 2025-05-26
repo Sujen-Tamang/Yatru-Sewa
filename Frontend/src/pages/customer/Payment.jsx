@@ -1,10 +1,8 @@
-// pages/Payment.jsx
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaArrowLeft, FaRupeeSign } from 'react-icons/fa';
-import KhaltiCheckoutButton from "../../components/KhaltiCheckoutButton.jsx";
 
 const PaymentPage = () => {
     const location = useLocation();
@@ -12,6 +10,8 @@ const PaymentPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [booking, setBooking] = useState(null);
+    const [paymentData, setPaymentData] = useState(null);
+    const [paymentUrl, setPaymentUrl] = useState(null);
 
     useEffect(() => {
         if (!location.state?.booking) {
@@ -19,70 +19,127 @@ const PaymentPage = () => {
             navigate('/bus-booking');
             return;
         }
+        console.log('Booking data:', JSON.stringify(location.state.booking, null, 2));
         setBooking(location.state.booking);
+        initiatePayment(location.state.booking);
     }, [location, navigate]);
 
-    const handleKhaltiSuccess = async (payload) => {
+    const initiatePayment = async (bookingData) => {
         setLoading(true);
         setError(null);
 
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+        console.log('VITE_BACKEND_URL:', backendUrl);
+
+        if (!backendUrl || !backendUrl.startsWith('http')) {
+            setError('Invalid backend URL. Please check environment variables.');
+            toast.error('Invalid backend URL');
+            setLoading(false);
+            return;
+        }
+
+        // Validate bookingData fields
+        if (!bookingData.bus?.id || !/^[0-9a-fA-F]{24}$/.test(bookingData.bus.id)) {
+            setError('Invalid or missing Bus ID');
+            toast.error('Invalid or missing Bus ID');
+            setLoading(false);
+            return;
+        }
+        console.log('Bus ID:', bookingData.bus.id);
+        if (!Array.isArray(bookingData.selectedSeats) || bookingData.selectedSeats.length === 0) {
+            setError('No seats selected');
+            toast.error('No seats selected');
+            setLoading(false);
+            return;
+        }
+        if (!bookingData.journeyDate || !/^\d{4}-\d{2}-\d{2}$/.test(bookingData.journeyDate)) {
+            setError('Invalid travel date format (expected YYYY-MM-DD)');
+            toast.error('Invalid travel date format');
+            setLoading(false);
+            return;
+        }
+        if (!bookingData.totalAmount || typeof bookingData.totalAmount !== 'number' || bookingData.totalAmount <= 0) {
+            setError('Invalid amount');
+            toast.error('Invalid amount');
+            setLoading(false);
+            return;
+        }
+        if (!Array.isArray(bookingData.passengerInfo) || bookingData.passengerInfo.length === 0) {
+            setError('Passenger information is missing');
+            toast.error('Passenger information is missing');
+            setLoading(false);
+            return;
+        }
+        for (const passenger of bookingData.passengerInfo) {
+            if (!passenger.name || !passenger.age || !['Male', 'Female', 'Other'].includes(passenger.gender)) {
+                setError('Invalid passenger information: name, age, or gender is missing or invalid');
+                toast.error('Invalid passenger information');
+                setLoading(false);
+                return;
+            }
+        }
+
+        const payload = {
+            busId: bookingData.bus.id,
+            seats: bookingData.selectedSeats,
+            travelDate: bookingData.journeyDate,
+            amount: bookingData.totalAmount,
+            passengerInfo: bookingData.passengerInfo,
+        };
+        console.log('Sending payload:', JSON.stringify(payload, null, 2));
+
         try {
-            // Verify payment with your backend
             const response = await axios.post(
-                `${import.meta.env.VITE_BACKEND_URL}/payments/khalti/verify`,
+                `${backendUrl}/api/v1/bookings/`,
+                payload,
                 {
-                    pidx: payload.idx,
-                    transaction_id: payload.idx,
-                    amount: payload.amount / 100 // Convert back to NPR from paisa
-                },
-                {
-                    params: { booking: booking.bus.id },
-                    withCredentials: true
+                    headers: { "Content-Type": "application/json" },
+                    withCredentials: true,
                 }
             );
 
             if (response.data.success) {
-                // Create the booking in your system
-                const bookingResponse = await axios.post(
-                    `${import.meta.env.VITE_BACKEND_URL}/bookings`,
-                    {
-                        bus: booking.bus.id,
-                        journeyDate: booking.journeyDate,
-                        seats: booking.selectedSeats,
-                        payment: response.data.paymentId,
-                        totalAmount: booking.totalAmount,
-                        passengerInfo: booking.passengerInfo
-                    },
-                    { withCredentials: true }
-                );
-
-                if (bookingResponse.data.success) {
-                    // Navigate to confirmation page with all booking data
-                    navigate(`/bookingConfirmationPage/${bookingResponse.data.booking._id}`, {
-                        state: {
-                            bookingDetails: {
-                                ...bookingResponse.data.booking,
-                                paymentMethod: booking.paymentMethod,
-                                busDetails: booking.bus // Include full bus details
-                            }
-                        }
-                    });
-                } else {
-                    throw new Error('Booking creation failed');
-                }
+                setBooking({
+                    ...bookingData,
+                    bookingId: response.data.data.bookingId,
+                    paymentBreakdown: response.data.data.booking.paymentBreakdown,
+                    expiresAt: response.data.data.expiresAt,
+                });
+                setPaymentUrl(response.data.data.paymentUrl);
+                setPaymentData(response.data.data.paymentData);
             } else {
-                throw new Error('Payment verification failed');
+                throw new Error(response.data.message || 'Failed to initiate payment');
             }
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Payment processing error');
-            console.error('Payment error:', err);
+            const errorMessage = err.response?.data?.message || err.response?.data?.error?.message || 'Failed to initiate payment. Please try again.';
+            setError(errorMessage);
+            toast.error(errorMessage);
+            console.error('Payment initiation error:', JSON.stringify(err.response?.data, null, 2));
         } finally {
             setLoading(false);
         }
     };
 
-    const handleKhaltiError = (error) => {
-        setError(error.message || 'Payment failed');
+    const handlePayment = () => {
+        if (!paymentUrl || !paymentData) {
+            toast.error('Payment initialization not complete');
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = paymentUrl;
+
+        Object.entries(paymentData).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
     };
 
     if (!booking) {
@@ -103,6 +160,7 @@ const PaymentPage = () => {
                     <button
                         onClick={() => navigate(-1)}
                         className="flex items-center text-blue-600 mb-6"
+                        disabled={loading}
                     >
                         <FaArrowLeft className="mr-2" /> Back to booking
                     </button>
@@ -130,34 +188,54 @@ const PaymentPage = () => {
                                 <p className="text-gray-500 text-sm">Seats</p>
                                 <p className="font-medium">{booking.selectedSeats.join(', ')}</p>
                             </div>
-                        </div>
-
-                        <div className="border-t pt-4">
-                            <div className="flex justify-between items-center">
-                                <p className="text-gray-500">Total Amount</p>
-                                <p className="text-xl font-bold text-blue-600 flex items-center">
-                                    <FaRupeeSign className="mr-1" /> {booking.totalAmount}
-                                </p>
+                            <div>
+                                <p className="text-gray-500 text-sm">Passengers</p>
+                                <p className="font-medium">{booking.passengerInfo.length}</p>
                             </div>
                         </div>
+
+                        {booking.paymentBreakdown ? (
+                            <div className="border-t pt-4">
+                                <div className="flex justify-between items-center">
+                                    <p className="text-gray-500">Seat Price</p>
+                                    <p className="font-medium flex items-center">
+                                        <FaRupeeSign className="mr-1" /> {booking.paymentBreakdown.seatPrice}
+                                    </p>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-gray-500">Service Fee</p>
+                                    <p className="font-medium flex items-center">
+                                        <FaRupeeSign className="mr-1" /> {booking.paymentBreakdown.serviceFee}
+                                    </p>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-gray-500">Booking Fee</p>
+                                    <p className="font-medium flex items-center">
+                                        <FaRupeeSign className="mr-1" /> {booking.paymentBreakdown.bookingFee}
+                                    </p>
+                                </div>
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-gray-500 font-semibold">Total Amount</p>
+                                    <p className="text-xl font-bold text-blue-600 flex items-center">
+                                        <FaRupeeSign className="mr-1" /> {booking.totalAmount}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center text-gray-500">Loading payment details...</div>
+                        )}
                     </div>
 
                     <div className="mb-6">
                         <h2 className="font-semibold text-lg mb-4">Select Payment Method</h2>
-                        <div className="space-y-3">
-                            {booking.paymentMethod === "Khalti" && (
-                                <div className="border rounded-lg p-4 bg-white">
-                                    <KhaltiCheckoutButton
-                                        amount={booking.totalAmount}
-                                        bookingId={booking.bus.id}
-                                        onSuccess={handleKhaltiSuccess}
-                                        onError={handleKhaltiError}
-                                        disabled={loading}
-                                        buttonText={loading ? 'Processing Payment...' : 'Pay with Khalti'}
-                                    />
-                                </div>
-                            )}
-                            {/* Add other payment methods here */}
+                        <div className="border rounded-lg p-4 bg-white">
+                            <button
+                                onClick={handlePayment}
+                                className={`w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={loading || !paymentUrl || !booking.paymentBreakdown}
+                            >
+                                {loading ? 'Processing...' : 'Pay with eSewa'}
+                            </button>
                         </div>
                     </div>
 
@@ -177,7 +255,7 @@ const PaymentPage = () => {
                     )}
 
                     <p className="text-sm text-gray-500 text-center">
-                        Your payment is securely processed by Khalti. We don't store your payment details.
+                        Your payment is securely processed by eSewa. We don't store your payment details.
                     </p>
                 </div>
             </div>
