@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getAvailableSeats } from "../../../services/busService";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
-import { FaUser, FaPhone, FaEnvelope, FaRupeeSign, FaBus, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaTicketAlt } from "react-icons/fa";
+import { FaUser, FaRupeeSign, FaBus, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaTicketAlt } from "react-icons/fa";
 
 // Constants for seat layout
-const seatLetters = ["A", "B", "C", "D"];
+// const seatLetters = ["A", "B", "C", "D"];
 
 const BookingDetails = () => {
   const location = useLocation();

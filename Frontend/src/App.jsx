@@ -50,7 +50,6 @@ import PaymentPage from "./pages/customer/Payment.jsx";
 
 import UserPage from "./pages/UserPage.jsx";
 import DriverPage from "./pages/DriverPage.jsx";
-import BusTracking from "./pages/BusTracking.jsx";
 import BookingDetails from "./pages/customer/BookingDetails";
 
 function App() {
