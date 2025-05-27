@@ -74,6 +74,7 @@ export const confirmBooking = catchAsyncError(async (req, res, next) => {
     const payment = await Payment.findOne({
         _id: paymentId,
         user: userId,
+        booking: bookingId,
         status: 'completed'
     });
 
@@ -85,7 +86,8 @@ export const confirmBooking = catchAsyncError(async (req, res, next) => {
     const booking = await Booking.findOne({
         _id: bookingId,
         user: userId,
-        status: 'Pending'
+        status: 'Pending',
+        expiresAt: { $gt: new Date() }
     }).populate('bus');
 
     if (!booking) {

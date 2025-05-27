@@ -181,9 +181,6 @@ const BookingDetails = () => {
     );
   };
 
-  const handleFormChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handlePaymentChange = (e) => {
     setPayment(e.target.value);
@@ -243,8 +240,8 @@ const BookingDetails = () => {
       passengerInfo: form
     };
 
-    if (payment === "Khalti") {
-      navigate('/payment', { state: { booking: bookingData } });
+    if (payment === "Khalti" || payment === "Esewa") {
+      navigate('/payment', {state: {booking: bookingData}});
     } else {
       toast.error("Selected payment method is not available yet");
     }
@@ -346,7 +343,6 @@ const BookingDetails = () => {
                 </div>
               </div>
             </div>
-            {/* Passenger Info section removed */}
             {/* Payment Method */}
             <div className="mb-8">
               <h3 className="font-semibold mb-3">Payment Method</h3>
@@ -355,9 +351,9 @@ const BookingDetails = () => {
                   <input type="radio" name="payment" value="Khalti" checked={payment === "Khalti"} onChange={handlePaymentChange} className="mr-2" />
                   <img src="https://seeklogo.com/images/K/khalti-wallet-logo-0B1F0C6E5A-seeklogo.com.png" alt="Khalti" className="w-6 h-6 mr-2" /> Pay with Khalti
                 </label>
-                <label className={`flex items-center border rounded-lg px-4 py-3 cursor-pointer ${payment === "IME Pay" ? "border-green-400 bg-green-50" : "border-gray-200"}`}>
-                  <input type="radio" name="payment" value="IME Pay" checked={payment === "IME Pay"} onChange={handlePaymentChange} className="mr-2" />
-                  <img src="https://seeklogo.com/images/I/ime-pay-logo-6B2B1B6B2B-seeklogo.com.png" alt="IME Pay" className="w-6 h-6 mr-2" /> Pay with IME Pay
+                <label className={`flex items-center border rounded-lg px-4 py-3 cursor-pointer ${payment === "Esewa" ? "border-green-400 bg-green-50" : "border-gray-200"}`}>
+                  <input type="radio" name="payment" value="Esewa" checked={payment === "Esewa"} onChange={handlePaymentChange} className="mr-2" />
+                  <img src="https://seeklogo.com/images/I/ime-pay-logo-6B2B1B6B2B-seeklogo.com.png" alt="Esewa" className="w-6 h-6 mr-2" /> Pay with Esewa
                 </label>
               </div>
             </div>

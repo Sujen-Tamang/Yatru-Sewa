@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaArrowLeft, FaRupeeSign } from 'react-icons/fa';
 import KhaltiCheckoutButton from "../../components/KhaltiCheckoutButton.jsx";
+import EsewaCheckoutButton from "../../components/EsewaCheckoutButton.jsx";
 
 const PaymentPage = () => {
     const location = useLocation();
@@ -27,13 +28,12 @@ const PaymentPage = () => {
         setError(null);
 
         try {
-            // Verify payment with your backend
             const response = await axios.post(
                 `${import.meta.env.VITE_BACKEND_URL}/payments/khalti/verify`,
                 {
                     pidx: payload.idx,
                     transaction_id: payload.idx,
-                    amount: payload.amount / 100 // Convert back to NPR from paisa
+                    amount: payload.amount / 100
                 },
                 {
                     params: { booking: booking.bus.id },
@@ -42,7 +42,6 @@ const PaymentPage = () => {
             );
 
             if (response.data.success) {
-                // Create the booking in your system
                 const bookingResponse = await axios.post(
                     `${import.meta.env.VITE_BACKEND_URL}/bookings`,
                     {
@@ -57,13 +56,12 @@ const PaymentPage = () => {
                 );
 
                 if (bookingResponse.data.success) {
-                    // Navigate to confirmation page with all booking data
                     navigate(`/bookingConfirmationPage/${bookingResponse.data.booking._id}`, {
                         state: {
                             bookingDetails: {
                                 ...bookingResponse.data.booking,
                                 paymentMethod: booking.paymentMethod,
-                                busDetails: booking.bus // Include full bus details
+                                busDetails: booking.bus
                             }
                         }
                     });
@@ -83,6 +81,10 @@ const PaymentPage = () => {
 
     const handleKhaltiError = (error) => {
         setError(error.message || 'Payment failed');
+    };
+
+    const handleEsewaError = (error) => {
+        setError(error.message || 'eSewa Payment failed');
     };
 
     if (!booking) {
@@ -143,21 +145,27 @@ const PaymentPage = () => {
                     </div>
 
                     <div className="mb-6">
-                        <h2 className="font-semibold text-lg mb-4">Select Payment Method</h2>
                         <div className="space-y-3">
                             {booking.paymentMethod === "Khalti" && (
-                                <div className="border rounded-lg p-4 bg-white">
-                                    <KhaltiCheckoutButton
-                                        amount={booking.totalAmount}
-                                        bookingId={booking.bus.id}
-                                        onSuccess={handleKhaltiSuccess}
-                                        onError={handleKhaltiError}
-                                        disabled={loading}
-                                        buttonText={loading ? 'Processing Payment...' : 'Pay with Khalti'}
-                                    />
-                                </div>
+                                <KhaltiCheckoutButton
+                                    amount={booking.totalAmount}
+                                    bookingId={booking.bus.id}
+                                    onSuccess={handleKhaltiSuccess}
+                                    onError={handleKhaltiError}
+                                    disabled={loading}
+                                    buttonText={loading ? 'Processing Payment...' : 'Pay with Khalti'}
+                                />
                             )}
-                            {/* Add other payment methods here */}
+
+                            {booking.paymentMethod === "Esewa" && (
+                                <EsewaCheckoutButton
+                                    amount={booking.totalAmount}
+                                    bookingId={booking.bus.id}
+                                    onError={handleEsewaError}
+                                    buttonText={loading ? 'Redirecting to eSewa...' : 'Pay with eSewa'}
+                                    disabled={loading}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -177,8 +185,9 @@ const PaymentPage = () => {
                     )}
 
                     <p className="text-sm text-gray-500 text-center">
-                        Your payment is securely processed by Khalti. We don't store your payment details.
+                        Your payment is securely processed by {booking.paymentMethod === "Esewa" ? "eSewa" : "Khalti"}. We don't store your payment details.
                     </p>
+
                 </div>
             </div>
         </div>

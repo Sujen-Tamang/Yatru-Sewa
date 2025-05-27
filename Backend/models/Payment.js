@@ -29,7 +29,7 @@ const paymentSchema = new mongoose.Schema({ user: {
         enum: ['khalti','esewa'],
         required: true
     },
-    transaction_id: String, // Khalti transaction ID
+    transactionId: String,
     refunded: {
         type: Boolean,
         default: false
